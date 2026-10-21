@@ -33,3 +33,20 @@ test('organized navigation covers actual library files and home shortcuts resolv
  assert.match(context.sourceLayer('src/services-$id/catalog-service.js'),/Service/);
  assert.equal(context.titleFor('guides/operations/01-create-product.md'),'C1 · เพิ่มข้อมูลสินค้า');
 });
+test('language-aware colors preserve shell URLs, JSON properties and original source text',async()=>{
+ const js=await readFile('local-study/app.js','utf8');const context={URL};new Script(js.slice(0,js.indexOf("document.addEventListener('click'"))).runInNewContext(context);
+ const raw='git clone https://github.com/Phakinza007/int161-exam-kit.git\nnpm ci\n# prepare';
+ const shell=context.highlight(raw,'bash');assert.match(shell,/tok-url/);assert.match(shell,/<span class="tok-keyword">git<\/span>/);assert.ok(!shell.includes('tok-comment">//'));
+ const restored=shell.replace(/<span class="tok-[a-z]+">|<\/span>/g,'').replaceAll('&quot;','"').replaceAll('&#39;',"'").replaceAll('&gt;','>').replaceAll('&lt;','<').replaceAll('&amp;','&');assert.equal(restored,raw);
+ assert.match(context.highlight('{"name":"Demo","age":20}','json'),/tok-property/);
+ const md=context.markdown('```sh\nnpm start\n```','START-HERE.th.md');assert.match(md,/code-language">SH/);assert.match(md,/tok-keyword/);
+});
+test('all diagram nodes link to bundled files and controller follows selected operation',async()=>{
+ const {getLibrary}=await import('../local-study/server.mjs');const files=await getLibrary();const js=await readFile('local-study/app.js','utf8');const context={URL};new Script(js.slice(0,js.indexOf("document.addEventListener('click'"))).runInNewContext(context);
+ for(const kind of ['overview','setup','pagination','dto','error','postman']){
+  const html=context.diagramMarkup(kind,'guides/operations/01-create-product.md');
+  for(const link of html.matchAll(/href="#file=([^"]+)"/g))assert.ok(files.some(f=>f.path===decodeURIComponent(link[1])));
+ }
+ const create=context.diagramMarkup('overview','guides/operations/01-create-product.md');assert.ok(create.includes(encodeURIComponent('src/controllers-$id/01-create-product.js')));
+ assert.match(context.diagramMarkup('dto','GUIDE.md'),/Mapper/);assert.equal(context.diagramFor('START-HERE.th.md'),'setup');
+});
