@@ -2,7 +2,7 @@
 
 ## เตรียมก่อนตัดเน็ต
 
-ต้องมี Node >=22.9, MySQL เปิดอยู่ และดาวน์โหลดdependenciesเรียบร้อย repoเป็นprivate ใช้บัญชีที่มีสิทธิ์
+ต้องมี Node >=22.9, MySQL เปิดอยู่ และดาวน์โหลดdependenciesเรียบร้อย repoเป็นpublic ดาวน์โหลดได้ผ่าน GitHub
 
 ```sh
 git clone https://github.com/Phakinza007/int161-exam-kit.git
