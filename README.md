@@ -20,6 +20,12 @@ GUIDE.md                   วิธีปรับโครงให้ตร�
 INT161-MIDTERM/             สรุปอ่านประกอบ 9 บท
 ```
 
+## Localhost สำหรับเปิดคู่มือขณะเขียนโค้ด
+
+รัน `npm run study` แล้วเปิด http://127.0.0.1:8171 มีคู่มือ/เฉลย/source พร้อมค้นหาและคัดลอกโค้ด ใช้ได้ offline ไม่ต้องต่อฐานข้อมูลสำหรับหน้าเอกสาร ส่วน API ให้เปิดอีก Terminal ด้วย `npm start` ที่ port 3000
+
+อ่าน [วิธีเชื่อม Postman แบบละเอียด](POSTMAN.md) มีทั้ง Import collection และสร้าง request ด้วย URL เต็มสำหรับโหมด offline
+
 ## คำถาม เฉลย วิธีคิด และวิธีทำ
 
 เปิด [QUESTIONS-AND-ANSWERS.md](QUESTIONS-AND-ANSWERS.md) แล้วเลือกส่วนที่ต้องการ แต่ละหน้าจับคู่คำถามเดิมกับJS/SQLที่โครงใช้อยู่และอธิบายเหตุผลทีละขั้น
@@ -42,6 +48,6 @@ controllerเรียก service/repository/mapper ที่มีครบใ�
 - `DB_MODE=practice`: เปิดโครงกับฐานตัวอย่างที่แยกไว้ ใช้ `npm run db:init` ได้
 - `DB_MODE=exam`: เชื่อม `DB_NAME` ที่ระบุเอง และบังคับ `STUDENT_ID`/`STUDENT_NAME`/`STUDENT_KEY` ให้ครบเป็นค่าจริง ไม่สร้าง/resetฐาน ต้องปรับSQL/schema/contractตามโจทย์และใช้SQLอาจารย์ตามคำสั่ง
 
-เตรียม Node/MySQL และ `npm ci` ก่อนตัดอินเทอร์เน็ต เอกสาร.mdและโค้ด.jsเปิดอ่านออฟไลน์ได้ ไม่ใช้เว็บหรือskill ไม่มีโฟลเดอร์โจทย์ให้ทำเพิ่ม
+เตรียม Node/MySQL และ `npm ci` ก่อนตัดอินเทอร์เน็ต เอกสาร.mdและโค้ด.jsเปิดอ่านออฟไลน์ได้ หรือเปิดหน้าlocalhostด้วยnpm run study ไม่มีโฟลเดอร์โจทย์ให้ทำเพิ่ม
 
 [อ่านสรุป9บท](INT161-MIDTERM) · [ใส่ลงteacher template](guides/05-template.md) · [แก้error/ก่อนส่ง](guides/06-offline.md) · [ผลตรวจ](docs/VALIDATION.md)

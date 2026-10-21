@@ -1,6 +1,6 @@
 {
   "name": "int161-exam-kit",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "description": "INT161 ready-to-adapt Express ESM and MySQL exam template",
@@ -15,7 +15,8 @@
     "test:unit": "node --test tests/unit.test.js tests/db-guard.test.js",
     "verify:template": "node --env-file-if-exists=.env scripts/verify-template.mjs",
     "package:kit": "node scripts/package-kit.mjs",
-    "verify:offline": "node --env-file-if-exists=.env scripts/verify-offline.mjs"
+    "verify:offline": "node --env-file-if-exists=.env scripts/verify-offline.mjs",
+    "study": "node local-study/server.mjs"
   },
   "dependencies": {
     "express": "5.2.1",

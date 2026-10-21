@@ -48,3 +48,7 @@ STUDENT_KEY=key_from_spec
 เปิด [GUIDE.md](GUIDE.md) คู่กับsrc ค้นคอมเมนต์ `ADAPT` แก้ตามลำดับ แล้วส่งrequestจาก [catalog.http](requests/catalog.http) โดยแก้baseURL/bodyให้ตรงโครงของตัวเอง
 
 Ctrl+Cหยุดserver ไม่commit.env หลังเตรียมเอกสารและdependenciesในช่วงที่อนุญาต ระหว่างสอบห้ามใช้อินเทอร์เน็ต รับ/ส่งprojectตามLEB2และคำสั่งอาจารย์
+
+## เปิดคู่มือใน localhost
+
+รัน `npm run study` แล้วเปิด http://127.0.0.1:8171 เพื่อค้นคู่มือและ source พร้อมสีโค้ด อีก Terminal ใช้ `npm start` เปิด API ที่ port3000 ดู [Postman](POSTMAN.md) สำหรับการส่ง request แบบละเอียด
