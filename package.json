@@ -1,6 +1,6 @@
 {
   "name": "int161-exam-kit",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "type": "module",
   "description": "INT161 ready-to-adapt Express ESM and MySQL exam template",

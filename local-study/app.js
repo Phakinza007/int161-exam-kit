@@ -31,6 +31,30 @@ function markdown(text,path){const lines=text.split('\n');let html='',i=0;
  if(line.startsWith('> ')){html+='<blockquote>'+inline(line.slice(2),path)+'</blockquote>';i++;continue;}
  html+='<p>'+inline(line,path)+'</p>';i++;
  }return html;}
+const learningChapters=[
+ {path:'START-HERE.th.md',title:'เริ่มตรงนี้',time:'10 นาที'},
+ {path:'guides/walkthrough/01-webstorm.md',title:'เปิด Template ใน WebStorm',time:'20 นาที'},
+ {path:'guides/walkthrough/02-database.md',title:'ต่อ MySQL และดู Schema',time:'30 นาที'},
+ {path:'guides/walkthrough/03-crud.md',title:'ไล่ CRUD ทีละไฟล์',time:'45 นาที'},
+ {path:'guides/walkthrough/04-contracts.md',title:'DTO / Pagination / Error',time:'30 นาที'},
+ {path:'guides/walkthrough/05-postman-offline.md',title:'Postman และ Offline',time:'30 นาที'}
+];
+const progressKey='int161-walkthrough-v1';
+function loadProgress(){try{const value=JSON.parse(localStorage.getItem(progressKey)||'[]');return new Set(Array.isArray(value)?value.filter(p=>learningChapters.some(c=>c.path===p)):[]);}catch{return new Set();}}
+let completedChapters=loadProgress();
+function saveProgress(){try{localStorage.setItem(progressKey,JSON.stringify([...completedChapters]));}catch{notice('บันทึกในเบราว์เซอร์ไม่ได้ แต่ยังอ่านคู่มือต่อได้');}}
+function renderLearning(){
+ $('lesson-count').textContent=`ตรวจแล้ว ${completedChapters.size} / ${learningChapters.length} บท`;
+ $('lesson-links').replaceChildren();
+ learningChapters.forEach((chapter,i)=>{const a=document.createElement('a');a.href='#file='+encodeURIComponent(chapter.path);a.className='lesson-card'+(completedChapters.has(chapter.path)?' complete':'');const number=document.createElement('span');number.className='lesson-number';number.textContent=String(i).padStart(2,'0');const title=document.createElement('strong');title.textContent=chapter.title;const meta=document.createElement('small');meta.textContent=completedChapters.has(chapter.path)?'✓ ตรวจแล้ว':`ประมาณ ${chapter.time}`;a.append(number,title,meta);$('lesson-links').append(a);});
+ const index=learningChapters.findIndex(c=>c.path===currentPath);$('chapter-tools').hidden=index<0;if(index<0)return;
+ $('chapter-position').textContent=`บท ${String(index).padStart(2,'0')} · ลำดับ ${index+1}/${learningChapters.length} · ${learningChapters[index].title}`;
+ $('chapter-done').checked=completedChapters.has(currentPath);
+ const previous=$('chapter-prev'),next=$('chapter-next');previous.hidden=index===0;next.hidden=index===learningChapters.length-1;
+ if(index>0){previous.href='#file='+encodeURIComponent(learningChapters[index-1].path);previous.textContent='← '+learningChapters[index-1].title;}
+ if(index<learningChapters.length-1){next.href='#file='+encodeURIComponent(learningChapters[index+1].path);next.textContent=learningChapters[index+1].title+' →';}
+}
+
 function notice(text){$('notice').textContent=text;}
 const sections=[
  {id:'start',title:'01 เริ่มใช้งาน',hint:'ตั้งค่า / อ่านสเปก / ปรับโครง'},
@@ -41,20 +65,20 @@ const sections=[
  {id:'source',title:'06 Source code',hint:'ไฟล์จริง แยกตาม Layer'}
 ];
 const titles={
- 'README.md':'ภาพรวมชุดเอกสาร','START-HERE.th.md':'เริ่มรัน API ในเครื่อง','GUIDE.md':'วิธีปรับ Template ทีละขั้น','POSTMAN.md':'เชื่อมและทดสอบด้วย Postman','QUESTIONS-AND-ANSWERS.md':'รวมคำถามและเฉลย',
+ 'README.md':'ภาพรวมชุดเอกสาร','START-HERE.th.md':'00 · เริ่มตรงนี้','GUIDE.md':'วิธีปรับ Template ทีละขั้น','POSTMAN.md':'เชื่อมและทดสอบด้วย Postman','QUESTIONS-AND-ANSWERS.md':'รวมคำถามและเฉลย',
  'guides/00-template-map.md':'แผนที่ไฟล์ ZIP อาจารย์','guides/01-contract.md':'จดสเปกและ API Contract','guides/05-template.md':'นำโค้ดใส่ Template อาจารย์','guides/02-crud.md':'หลักการ CRUD','guides/03-pagination-dto.md':'Pagination และ DTO','guides/04-errors-keys.md':'Error และชนิด Key','guides/06-offline.md':'แก้ Error / Offline / ก่อนส่ง',
  'guides/operations/01-create-product.md':'C1 · เพิ่มข้อมูลสินค้า','guides/operations/02-read-brands.md':'R1 · อ่านรายการแบรนด์','guides/operations/03-read-products.md':'R2 · รายการ + Pagination','guides/operations/04-read-product-detail.md':'R3 · อ่านรายละเอียดสินค้า','guides/operations/05-update-product.md':'U1 · แก้ไขสินค้า','guides/operations/06-delete-product.md':'D1 · ลบสินค้า',
  'requests/catalog.http':'ตัวอย่าง Request (.http)','requests/postman.json':'Postman Collection (.json)','requests/curl.sh':'ตรวจ API ด้วย curl',
  'INT161-MIDTERM/01-http-rest-status.md':'HTTP / REST / Status','INT161-MIDTERM/02-express-esm.md':'Express / ESM','INT161-MIDTERM/03-controller-service-repository.md':'Route / Service / Repository','INT161-MIDTERM/04-crud-sql.md':'CRUD / SQL','INT161-MIDTERM/05-dto-mapper.md':'DTO / Mapper','INT161-MIDTERM/06-pagination.md':'Pagination','INT161-MIDTERM/07-exception-handling.md':'Exception Handling','INT161-MIDTERM/08-complete-code-example.md':'ตัวอย่างโค้ดครบ','INT161-MIDTERM/09-common-errors.md':'Error ที่พบบ่อย'
 };
 function sectionFor(path){
- if(['README.md','START-HERE.th.md','GUIDE.md','guides/00-template-map.md','guides/01-contract.md','guides/05-template.md'].includes(path))return 'start';
+ if(path.startsWith('guides/walkthrough/')||['README.md','START-HERE.th.md','GUIDE.md','guides/00-template-map.md','guides/01-contract.md','guides/05-template.md'].includes(path))return 'start';
  if(path==='QUESTIONS-AND-ANSWERS.md'||path.startsWith('guides/operations/'))return 'tasks';
  if(path.startsWith('INT161-MIDTERM/')||['guides/02-crud.md','guides/03-pagination-dto.md','guides/04-errors-keys.md'].includes(path))return 'topics';
  if(path==='POSTMAN.md'||path.startsWith('requests/'))return 'postman';
  if(path==='guides/06-offline.md')return 'debug';return 'source';
 }
-function titleFor(path){return titles[path]||path.split('/').pop();}
+function titleFor(path){const chapter=learningChapters.findIndex(c=>c.path===path);return chapter>=0?String(chapter).padStart(2,'0')+' · '+learningChapters[chapter].title:titles[path]||path.split('/').pop();}
 function sourceLayer(path){
  const layers=[['routes-','Route · รับ req / ส่ง res'],['services-','Service · กฎและ Validation'],['repositories-','Repository · SQL'],['mappers-','Mapper · DTO / Response'],['middlewares-','Middleware · Pagination / Error'],['configs-','Config · DB / Identity']];
  for(const [part,title] of layers)if(path.includes('/'+part))return title;
@@ -65,7 +89,7 @@ const teacherFiles=new Set(['src/app.js','src/test-service.js','src/configs-$id/
 function fileLink(file){const a=document.createElement('a');a.href='#file='+encodeURIComponent(file.path);a.title=file.path;a.textContent=titleFor(file.path);if(file.path.startsWith('src/')){const small=document.createElement('small');small.className='file-origin';small.textContent=teacherFiles.has(file.path)?'ตาม ZIP':'เพิ่มเติม';a.append(small);}if(file.path===currentPath)a.setAttribute('aria-current','page');return a;}
 function listFiles(){
  const q=$('search').value.trim().toLowerCase(),files=library.filter(f=>(titleFor(f.path)+'\n'+f.path+'\n'+f.content).toLowerCase().includes(q));$('files').replaceChildren();
- for(const section of sections){const matches=files.filter(f=>sectionFor(f.path)===section.id);if(!matches.length)continue;
+ for(const section of sections){const matches=files.filter(f=>sectionFor(f.path)===section.id);if(section.id==='start')matches.sort((a,b)=>{const ai=learningChapters.findIndex(c=>c.path===a.path),bi=learningChapters.findIndex(c=>c.path===b.path);return (ai<0?99:ai)-(bi<0?99:bi);});if(!matches.length)continue;
   const detail=document.createElement('details');detail.className='nav-group';detail.open=!!q||openSections.has(section.id)||matches.some(f=>f.path===currentPath);
   const summary=document.createElement('summary');summary.textContent=section.title;const count=document.createElement('span');count.textContent=matches.length;summary.append(count);detail.append(summary);
   detail.addEventListener('toggle',()=>{if(!q){if(detail.open)openSections.add(section.id);else openSections.delete(section.id);}});
@@ -105,8 +129,10 @@ function diagramMarkup(kind,path){const scene=diagramScenes[kind]||diagramScenes
 function renderDiagram(kind=diagramFor(currentPath)){$('diagram-content').innerHTML=diagramMarkup(kind,currentPath);document.querySelectorAll('[data-diagram]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.diagram===kind)));}
 
 function buildToc(){const headings=[...$('document').querySelectorAll('h2,h3')];$('toc').replaceChildren();$('toc').hidden=headings.length<2;if(headings.length<2)return;const label=document.createElement('strong');label.textContent='ในหน้านี้';$('toc').append(label);headings.forEach((h,i)=>{h.id='part-'+i;const b=document.createElement('button');b.type='button';b.textContent=h.textContent;b.className=h.tagName==='H3'?'subheading':'';b.addEventListener('click',()=>h.scrollIntoView({block:'start'}));$('toc').append(b);});}
-function navigate(){let path='';try{path=location.hash.startsWith('#file=')?decodeURIComponent(location.hash.slice(6)):'';}catch{}const file=library.find(f=>f.path===path);currentPath=file?.path||'';$('home').hidden=!!file;$('reader').hidden=!file;notice(path&&!file?'ไม่พบไฟล์นี้ในคลัง':'');if(file){$('filename').textContent=titleFor(file.path);$('filepath').textContent=file.path;$('breadcrumb').textContent='หน้ารวมงาน / '+sections.find(s=>s.id===sectionFor(file.path)).title;$('kind').textContent=file.path.endsWith('.md')?'คู่มือและวิธีทำ':(teacherFiles.has(file.path)?'SOURCE CODE · ตามโครง ZIP อาจารย์':'SOURCE CODE · ส่วนที่เพิ่ม');$('document').innerHTML=file.path.endsWith('.md')?markdown(file.content,file.path):codeBlock(file.content,languageFor(file.path));$('download').href='/download?file='+encodeURIComponent(file.path);$('download').download=file.path.split('/').pop();renderRelated(file.path);renderDiagram();buildToc();}listFiles();window.scrollTo(0,0);}
+function navigate(){let path='';try{path=location.hash.startsWith('#file=')?decodeURIComponent(location.hash.slice(6)):'';}catch{}const file=library.find(f=>f.path===path);currentPath=file?.path||'';$('home').hidden=!!file;$('reader').hidden=!file;notice(path&&!file?'ไม่พบไฟล์นี้ในคลัง':'');if(file){$('filename').textContent=titleFor(file.path);$('filepath').textContent=file.path;$('breadcrumb').textContent='หน้ารวมงาน / '+sections.find(s=>s.id===sectionFor(file.path)).title;$('kind').textContent=file.path.endsWith('.md')?'คู่มือและวิธีทำ':(teacherFiles.has(file.path)?'SOURCE CODE · ตามโครง ZIP อาจารย์':'SOURCE CODE · ส่วนที่เพิ่ม');$('document').innerHTML=file.path.endsWith('.md')?markdown(file.content,file.path):codeBlock(file.content,languageFor(file.path));$('download').href='/download?file='+encodeURIComponent(file.path);$('download').download=file.path.split('/').pop();const chapter=learningChapters.some(c=>c.path===file.path);$('reader').classList.toggle('walkthrough-reading',chapter);document.querySelector('.visual-panel').open=!chapter||/03-crud|04-contracts/.test(file.path);renderRelated(file.path);renderDiagram();buildToc();}renderLearning();listFiles();window.scrollTo(0,0);}
 document.addEventListener('click',async e=>{const diagram=e.target.closest('[data-diagram]');if(diagram){renderDiagram(diagram.dataset.diagram);return;}const open=e.target.closest('[data-open]');if(open){location.hash='file='+encodeURIComponent(open.dataset.open);return;}const copy=e.target.closest('[data-copy-block]');if(copy){try{await navigator.clipboard.writeText(copy.parentElement.nextElementSibling.textContent);notice('คัดลอกโค้ดแล้ว');}catch{notice('เลือกโค้ดแล้วคัดลอกด้วยตนเองได้');}}});
 $('copy-file').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(library.find(f=>f.path===currentPath).content);notice('คัดลอกทั้งไฟล์แล้ว');}catch{notice('เลือกข้อความแล้วคัดลอก หรือดาวน์โหลดไฟล์ได้');}});
+$('chapter-done').addEventListener('change',()=>{if($('chapter-done').checked)completedChapters.add(currentPath);else completedChapters.delete(currentPath);saveProgress();renderLearning();});
+$('reset-lessons').addEventListener('click',()=>{completedChapters.clear();saveProgress();renderLearning();notice('เริ่ม self-check ใหม่แล้ว');});
 $('search').addEventListener('input',listFiles);window.addEventListener('hashchange',navigate);
 fetch('/api/library').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(files=>{library=files;navigate();}).catch(()=>notice('โหลดไฟล์ไม่สำเร็จ ตรวจว่า npm run study ยังทำงานอยู่แล้ว reload'));

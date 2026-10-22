@@ -19,6 +19,10 @@ src/
 
 ลำดับทำงาน: Request → route.js (req/res) → service.js → repository.js → MySQL แล้ว Service เรียก EntityDtoMapper.map/maps ก่อน route.js ส่ง apiResponse
 
+## ทำตามทีละขั้น
+
+มีคู่มือ6บทพร้อม Self-check ใน localhost: [00เตรียมตัว](START-HERE.th.md) → [01WebStorm](guides/walkthrough/01-webstorm.md) → [02Database](guides/walkthrough/02-database.md) → [03CRUD](guides/walkthrough/03-crud.md) → [04DTO/Pagination/Error](guides/walkthrough/04-contracts.md) → [05Postman/Offline](guides/walkthrough/05-postman-offline.md) ทุกขั้นระบุไฟล์ที่เปิด สิ่งที่ทำ เหตุผล ผลที่ควรเห็น และวิธีตรวจเมื่อไม่ผ่าน
+
 ## เปิดใช้งาน
 
 เตรียม Node >=22.9, MySQL และ dependencies ในช่วงที่ใช้อินเทอร์เน็ตได้:

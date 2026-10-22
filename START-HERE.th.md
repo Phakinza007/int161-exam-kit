@@ -1,54 +1,88 @@
-# เริ่มใช้ Template
+# บท 00 — เริ่มตรงนี้: จากโครงเปล่าถึง API ที่ทดสอบได้
 
-## เตรียมก่อนตัดเน็ต
+อ่านตามลำดับ 6 บทได้โดยไม่ต้องเดาว่าควรเปิดไฟล์ไหนก่อน คู่มือนี้ใช้ **int161-exam-kit รุ่น 3 ตามชื่อไฟล์ใน ZIP สอบกลางภาค** ส่วน schema products/brands เป็นตัวอย่างที่เพิ่ม ไม่ใช่โจทย์จริงทั้งหมด
 
-ต้องมี Node >=22.9, MySQL เปิดอยู่ และดาวน์โหลดdependenciesเรียบร้อย repoเป็นpublic ดาวน์โหลดได้ผ่าน GitHub
+## ปลายทางที่ควรได้
+
+- เปิดโปรเจกต์ใน WebStorm และรู้ว่า package.json/src อยู่ตรงไหน
+- ต่อ MySQL ผ่านทั้งโปรแกรมและ Database tool ของ WebStorm
+- อ่านโค้ดครบ Request → route.js → service.js → repository.js → MySQL
+- ทดสอบ 1 Create, 3 Read, 1 Update, 1 Delete ด้วย Postman
+- รู้จุดแก้ DTO, Pagination และ Exception Handling ตามสเปก
+- เปิดคู่มือและ API หลังตัดอินเทอร์เน็ตได้
+
+ช่อง “ตรวจแล้ว” บนเว็บใช้จดความพร้อมของตัวเอง ไม่ได้แปลว่าโปรแกรมตรวจโค้ดผ่านให้อัตโนมัติ
+
+## เตรียม 4 อย่างก่อนเริ่ม
+
+| โปรแกรม | ใช้ทำอะไร | วิธีตรวจ |
+| --- | --- | --- |
+| WebStorm หรือ editor ที่ใช้คล่อง | เปิด source/Terminal และแก้ไฟล์ | เปิดโปรเจกต์ได้ |
+| Node.js >=22.9 และ npm | รัน API/คู่มือ ติดตั้ง dependencies | node -v และ npm -v |
+| MySQL Server | เก็บข้อมูลตัวอย่าง | เปิด service และรู้ user/password |
+| Postman desktop | ส่ง HTTP request | เปิดแอป สร้าง HTTP request ได้ |
+
+ชุดนี้กำหนด Node >=22.9 เพราะ start script ใช้ --env-file-if-exists ไม่ใช่การบอกว่า Express 5 ทุกรุ่นต้องใช้ Node เวอร์ชันนี้
+
+## ขั้นที่ 1 — ตรวจ Terminal
+
+**ทำที่ไหน:** Terminal ของเครื่อง หรือ View → Tool Windows → Terminal ใน WebStorm
+
+**ทำอะไร:** พิมพ์สองคำสั่งแยกบรรทัด:
 
 ```sh
-git clone https://github.com/Phakinza007/int161-exam-kit.git
-cd int161-exam-kit
-npm ci
-cp .env.example .env
+node -v
+npm -v
 ```
 
-ถ้าดาวน์โหลดZIPให้แตกแล้วcdเข้าโฟลเดอร์ที่มีpackage.json จากนั้นnpm ciและcopy.env.exampleเหมือนกัน ZIPไม่รวมnode_modules ใช้เครื่องสอบจริงเตรียมไว้ก่อน
+**ทำไม:** ตรวจว่าตัวรันและตัวติดตั้ง package พร้อม ก่อนแก้โค้ด
 
-## เปิดโครงด้วยฐานตัวอย่าง
+**ควรเห็น:** แต่ละคำสั่งคืนเลขเวอร์ชัน ไม่ใช่ command not found โดย Node ต้องตรงข้อกำหนดด้านบน
 
-ตั้ง `.env` ให้ตรงMySQLเครื่องตัวเอง เช่นDB_USER/DB_PASSWORD ส่วนDB_MODEให้เป็นpractice และDB_NAMEเป็นint161_practice_catalog
+**ถ้าไม่ผ่าน:** ตรวจการติดตั้ง Node/PATH แล้วเปิด Terminal ใหม่ การเปิด WebStorm ได้อย่างเดียวไม่ได้ยืนยันว่ามี Node
 
-```sh
-npm run db:init
-npm run doctor
-npm start
-```
+## ขั้นที่ 2 — แยก port กับฐานข้อมูลให้ถูก
 
-เปิด `http://127.0.0.1:3000/api/demo001/products?page=1&limit=10` ได้APIจริงแล้ว ต่อไปปรับโค้ดจาก [GUIDE.md](GUIDE.md) ไม่ต้องทำโจทย์ฝึกเพิ่ม
+| สิ่งที่เปิด | Address ตัวอย่าง | ใครใช้ |
+| --- | --- | --- |
+| Study Desk | http://127.0.0.1:8171 | Browser อ่านคู่มือ |
+| Express API | http://127.0.0.1:3000/api/demo001 | Postman ส่ง request |
+| MySQL | 127.0.0.1:3306 | mysql2 และ Database tool |
 
-`db:init` สร้างเฉพาะฐานprefix int161_practice_ ที่มีmarkerของชุดนี้ หากฐานชื่อเดียวกันมีอยู่แต่ไม่มีmarkerให้เลือกชื่อฝึกใหม่ที่ยังไม่มี ไม่เติมmarkerลงฐานที่ไม่รู้ที่มา
+**ทำที่ไหน:** ดู .env ของโปรเจกต์
 
-## ใช้กับฐานที่อาจารย์กำหนด
+**ทำอะไร:** แยก PORT ของ API ออกจาก DB_PORT ของ MySQL และจด STUDENT_ID ที่เป็น prefix
 
-หลังอ่านschemaและปรับโค้ดตามGUIDEแล้ว ตั้งค่าชัดเจนใน.env:
+**ควรเห็น:** อธิบายได้ว่า Postman ต้องไป port3000 ไม่ใช่ 8171 หรือ 3306 และ demo001 เป็นค่าตัวอย่างที่เปลี่ยนตามรหัสตัวเองได้
 
-```dotenv
-DB_MODE=exam
-DB_NAME=database_name_from_spec
-STUDENT_ID=your_actual_id
-STUDENT_NAME=Your Name
-STUDENT_KEY=key_from_spec
-```
+**ถ้าไม่ผ่าน:** เปิด Diagram แท็บ “เปิดโปรเจกต์” ด้านบนแล้วไล่กล่อง Postman → Node → MySQL
 
-แก้host/port/user/passwordให้ถูก แล้ว `npm run doctor` และ `npm start` โหมดนี้ตรวจconnectivityอย่างเดียว ไม่สร้างตาราง/seed/reset/บังคับmarker ต้องนำเข้าSQLของอาจารย์เองตามคำสั่ง ห้ามใช้db:initหรือtestของชุดนี้กับฐานสอบ โหมดexamจะปฏิเสธหากDB_NAME/STUDENT_ID/STUDENT_NAME/STUDENT_KEYว่างหรือยังใช้ค่าตัวอย่าง ต้องเปลี่ยนYour Name/key_from_specในsnippetด้านบนเป็นค่าจริงก่อนรัน
+## ขั้นที่ 3 — รู้ขอบเขตตัวอย่างก่อนเขียน
 
-หากSQL/requiredfieldsยังเป็นproductsของตัวอย่าง ต้องแก้ให้ตรงก่อนยิงPOST/PUT/DELETE ไม่ถือว่าการเปลี่ยน.envอย่างเดียวทำให้รองรับทุกโจทย์
+**ทำที่ไหน:** เปิด [แผนที่ไฟล์ ZIP](guides/00-template-map.md)
 
-## ระหว่างแก้งาน
+**ทำอะไร:** ตรวจว่าพบ app.js, route.js, service.js, repository.js, entity-dto-mapper.js, api-response.js และ pagination-middleware.js
 
-เปิด [GUIDE.md](GUIDE.md) คู่กับsrc ค้นคอมเมนต์ `ADAPT` แก้ตามลำดับ แล้วส่งrequestจาก [catalog.http](requests/catalog.http) โดยแก้baseURL/bodyให้ตรงโครงของตัวเอง
+**ควรเห็น:** route.js รับ req/res เอง ไม่มี Controller แยก app.js เปิด port ฟังก์ชันใช้ชื่อ getObject/getAllObjects/createObject/updateObject/removeObject ตาม template
 
-Ctrl+Cหยุดserver ไม่commit.env หลังเตรียมเอกสารและdependenciesในช่วงที่อนุญาต ระหว่างสอบห้ามใช้อินเทอร์เน็ต รับ/ส่งprojectตามLEB2และคำสั่งอาจารย์
+**ถ้าไม่ผ่าน:** อาจเปิดรุ่นเก่าที่มี catalog-* หรือ server.js ให้ใช้ชุดรุ่น 3 ขึ้นไป ถ้ากำลังเปิด ZIP อาจารย์ดิบยังไม่ใช่โครงเฉลยพร้อมรัน ให้อ่านบท 01 เรื่องสองโฟลเดอร์ก่อน
 
-## เปิดคู่มือใน localhost
+## เส้นทางอ่าน 6 บท
 
-รัน `npm run study` แล้วเปิด http://127.0.0.1:8171 เพื่อค้นคู่มือและ source พร้อมสีโค้ด อีก Terminal ใช้ `npm start` เปิด API ที่ port3000 ดู [Postman](POSTMAN.md) สำหรับการส่ง request แบบละเอียด
+| บท | ลงมือทำอะไร | ผ่านเมื่อ |
+| --- | --- | --- |
+| 00 หน้านี้ | เตรียมโปรแกรม/เข้าใจ port | node/npm พร้อมและรู้แต่ละ server |
+| [01 WebStorm](guides/walkthrough/01-webstorm.md) | เปิดโครงและติดตั้ง dependencies | เห็น package.json/src และ npm ci ผ่าน |
+| [02 Database](guides/walkthrough/02-database.md) | ตั้ง .env, สร้างฐานฝึก, Test Connection | doctor ผ่านและ SELECT ข้อมูลได้ |
+| [03 CRUD](guides/walkthrough/03-crud.md) | ไล่โค้ดและทดสอบทีละ layer | ชี้จุดแก้ครบ 6 งานได้ |
+| [04 DTO/Pagination/Error](guides/walkthrough/04-contracts.md) | ตรวจ response และกรณีผิดพลาด | array/object/types/status ตรง |
+| [05 Postman/Offline](guides/walkthrough/05-postman-offline.md) | ทดสอบทั้งระบบและเตรียมส่ง | Create→Read→Update→Delete ผ่าน |
+
+## Self-check ก่อนบทถัดไป
+
+- node -v/npm -v ออกเลขเวอร์ชัน
+- MySQL เปิดและมี user/password ของตัวเอง
+- แยก localhost8171, API3000 และ MySQL3306 ได้
+- เข้าใจว่าทุกชื่อ table/body/DTO ต้องปรับตามข้อสอบจริง
+
+พร้อมแล้วเปิด [บท 01 — ใช้ template ใน WebStorm](guides/walkthrough/01-webstorm.md)

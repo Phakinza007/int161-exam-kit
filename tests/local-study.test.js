@@ -50,3 +50,13 @@ test('all diagram nodes link to bundled files and HTTP handling stays in teacher
  const create=context.diagramMarkup('overview','guides/operations/01-create-product.md');assert.ok(create.includes(encodeURIComponent('src/routes-$id/route.js')));
  assert.match(context.diagramMarkup('dto','GUIDE.md'),/Mapper/);assert.equal(context.diagramFor('START-HERE.th.md'),'setup');
 });
+test('six-step learning path has real chapters, readable checkpoints and safe local progress',async()=>{
+ const {getLibrary}=await import('../local-study/server.mjs');const files=await getLibrary();const js=await readFile('local-study/app.js','utf8');
+ const memory=new Map();const context={URL,localStorage:{getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value)}};
+ const prefix=js.slice(0,js.indexOf("document.addEventListener('click'"));new Script(prefix).runInNewContext(context);
+ assert.equal(context.loadProgress().size,0);
+ context.localStorage.setItem('int161-walkthrough-v1',JSON.stringify(['START-HERE.th.md','missing.md']));assert.equal(context.loadProgress().size,1);
+ context.localStorage.setItem('int161-walkthrough-v1','{broken');assert.equal(context.loadProgress().size,0);
+ const chapters=files.filter(f=>f.path==='START-HERE.th.md'||f.path.startsWith('guides/walkthrough/'));assert.equal(chapters.length,6);
+ for(const chapter of chapters){assert.equal(context.sectionFor(chapter.path),'start');assert.match(chapter.content,/Self-check/);for(const label of ['ทำที่ไหน','ทำอะไร','ควรเห็น','ถ้าไม่ผ่าน'])assert.ok(chapter.content.includes(label),chapter.path+': '+label);}
+});

@@ -21,7 +21,7 @@
 1. ใส่queryParserก่อนhandlerเพื่อvalidateและnormalizepage/limit
 2. ส่งreq.paginationไปserviceและrepository
 3. SELECTรายการ ORDER BY id LIMIT ? OFFSET ? และCOUNT(*)ด้วยfilterเดียวกัน
-4. items.map(summary) แปลงpriceเป็นnumberและชื่อbrandId
+4. mapper.maps(items, 'summary') แปลงpriceเป็นnumberและชื่อbrandId
 5. metadataคำนวณtotalPagesและflags แล้วส่ง200พร้อมdata/pagination
 6. หน้าเกินคืน[]แต่เก็บtotalจริง; total0ต้องไม่fallbackไปค่าอื่น
 
