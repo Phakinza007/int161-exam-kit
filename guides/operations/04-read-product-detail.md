@@ -17,7 +17,7 @@
 
 ## วิธีทำทีละขั้น
 
-1. numericIdตรวจreq.params.id แล้วส่งidให้getProduct
+1. numericIdตรวจreq.params.id แล้วส่งidให้getObject
 2. repositoryfindProduct SELECT JOIN brands WHERE p.id=?
 3. ถ้าไม่มีแถว throw PRODUCT_NOT_FOUND404ก่อนเรียกdetail
 4. detailคืน13ฟิลด์ที่ระบุ แปลงpriceเป็นnumberและreleaseDateเป็นYYYY-MM-DD/null
@@ -28,16 +28,13 @@
 โค้ดนี้ใช้จริงในtemplate โดยservice/repository/mapperที่ต้องใช้ร่วมกันอยู่ครบตามลิงก์ถัดไป ไม่ใช่handlerเดี่ยวที่รันได้โดยไม่มีlayerอื่น
 
 ```js
-// ADAPT: controller ที่ใช้ได้แล้ว เปลี่ยนparams/body/statusตามโจทย์ และแก้service/repo/mapperที่เกี่ยวข้อง
-// Read 3: validate id → SELECT JOIN → missing404 → detail DTO
-import {success} from '../mappers-$id/api-response.js';
-import {numericId} from '../services-$id/catalog-service.js';
-
-export function readProductDetailHandler(service) {
-  return async function (req, res) {
-    return success(res, await service.getProduct(numericId(req.params.id)));
-  };
-}
+// อยู่ใน src/routes-$id/route.js
+// apiResponse(res, data, pagination = null, status = 200)
+// R3: รายละเอียดสินค้า
+ router.get('/products/:id', async(req,res) => {
+  const object = await implementation.getObject(numericId(req.params.id));
+  return apiResponse(res,object);
+ });
 ```
 
 ## เช็กว่าคำตอบถูกอย่างไร
@@ -46,11 +43,11 @@ export function readProductDetailHandler(service) {
 
 ## ไฟล์ที่ใช้ร่วมกัน
 
-- [handler ข้อนี้](../../src/controllers-$id/04-read-product-detail.js): ส่วน req/res ที่ route ใช้จริง
-- [route](../../src/routes-$id/catalog-route.js): จุด mount handler และ middleware
-- [service](../../src/services-$id/catalog-service.js): ฟังก์ชัน `getProduct` และ validation
-- [repository](../../src/repositories-$id/catalog-repository.js): ฟังก์ชัน `findProduct` และ SQL
-- [mapper](../../src/mappers-$id/product-mapper.js): detail
+- [handler ข้อนี้](../../src/routes-$id/route.js): ส่วน req/res ที่ route.js ใช้จริง
+- [route](../../src/routes-$id/route.js): จุดรับ req/res และลงทะเบียน middleware
+- [service](../../src/services-$id/service.js): ฟังก์ชัน `getObject` และ validation
+- [repository](../../src/repositories-$id/repository.js): ฟังก์ชัน `findOne` และ SQL
+- [mapper](../../src/mappers-$id/entity-dto-mapper.js): detail
 - [error handler](../../src/middlewares-$id/error-handler.js): แปลง error เป็น status/code/message
 
 ไฟล์ handler ไม่ใช่คำตอบทั้งหมดเพียงไฟล์เดียว ต้องอ่าน service/repository/mapper ที่ลิงก์ไว้ด้วย ทุกไฟล์เป็น .js ปกติ แยกชั้นเหมือน teacher template ไม่มีตัวสร้างโค้ดหรือ framework เพิ่ม
@@ -58,7 +55,7 @@ export function readProductDetailHandler(service) {
 ## จุดปรับเมื่อนำไปใช้กับข้อสอบ
 
 1. numericId ตรวจ id เป็นจำนวนเต็มบวกก่อนส่งลง service
-2. findProduct SELECT พร้อม JOIN brands ให้ได้ brand_name ไม่เดาชื่อจาก brand_id
+2. findOne SELECT พร้อม JOIN brands ให้ได้ brand_name ไม่เดาชื่อจาก brand_id
 3. ตรวจแถวไม่พบก่อนเข้า mapper แล้ว throw PRODUCT_NOT_FOUND404
 4. detail mapper คืน13ฟิลด์ตามใบงาน แปลง price เป็น number และ releaseDate เป็น YYYY-MM-DD หรือ null
 5. ตอบ success/data/timestamp ไม่ส่ง internal_cost หรือคอลัมน์ที่ไม่ได้กำหนด

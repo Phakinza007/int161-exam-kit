@@ -23,7 +23,7 @@ detail: id,sku,name,brandId,brandName,category,price,ramGb,storageGb,color,stock
 const dto = {id:entity.id, brandId:entity.brand_id, price:Number(entity.price)};
 ```
 
-โค้ดครบอยู่ [product-mapper.js](../src/mappers-$id/product-mapper.js) ใช้ `items.map(summary)` สำหรับรายการและ `detail(entity)` สำหรับแถวเดียว
+โค้ดครบอยู่ [entity-dto-mapper.js](../src/mappers-$id/entity-dto-mapper.js) ใช้ `EntityDtoMapper.maps(items, 'summary')` สำหรับรายการและ `EntityDtoMapper.map(entity, 'full')` สำหรับแถวเดียว
 
 ## จุดที่มักพลาด
 

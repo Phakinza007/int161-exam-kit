@@ -1,40 +1,42 @@
-# เอาโครงนี้ใส่ template อาจารย์
+# นำโค้ดไปใช้กับ template อาจารย์
 
-โค้ดที่ใช้จริงอยู่srcแล้ว นำไปประกอบในprojectที่อาจารย์กำหนดโดยเทียบทีละไฟล์ ไม่จำเป็นต้องเอาเอกสาร/tests/scripts/SQLตัวอย่างทั้งหมดไปส่ง
+ไฟล์หลักตั้งชื่อตรง ZIP แล้ว ดู [แผนที่ไฟล์](00-template-map.md) เพื่อแยกของอาจารย์กับ helpers ที่เพิ่ม
 
-| จากชุดนี้ | วางในteacher project | แก้ก่อนใช้ |
-| --- | --- | --- |
-| src/configs-$id/ | src/configs-$id/ | .env/DB/identity/mode |
-| src/routes-$id/ | src/routes-$id/ | method/path/middleware |
-| src/controllers-$id/ | src/controllers-$id/หรือcontrollerเดิม | params/body/status |
-| src/services-$id/ | src/services-$id/ | validation/business rule |
-| src/repositories-$id/ | src/repositories-$id/ | table/columns/key/JOIN/SQL |
-| src/mappers-$id/ | src/mappers-$id/ | DTO/envelope/types |
-| src/middlewares-$id/ | src/middlewares-$id/ | pagination/error contract |
-| src/app.js, src/server.js | src/ | ประกอบimportsและentrypoint |
+## แก้จากไฟล์เดิมทีละส่วน
 
-ถ้าอาจารย์ให้renamefolderเป็นรหัสตนเอง ให้เปลี่ยนชื่อและimportทุกแห่ง ชื่อcontrollers-$idเป็นการแยกhandlerของโครงนี้ จะยุบไปไว้routeเดิมได้แต่ต้องแก้importsให้ครบ
+| เปิดไฟล์ใน ZIP | ใส่อะไรจากโครงนี้ |
+| --- | --- |
+| src/app.js | express.json, mount route, error handler และ listen |
+| src/configs-$id/db-config.js | host/user/password/database ของตัวเอง |
+| src/routes-$id/route.js | method/path, req.params/query/body, เรียก service, apiResponse |
+| src/services-$id/service.js | getObject/getAllObjects/createObject/updateObject/removeObject และ validation |
+| src/repositories-$id/repository.js | findOne/findAll/create/update/remove และ SQL ตาม schema |
+| src/mappers-$id/entity-dto-mapper.js | toSummaryDTO/toDetailDTO/map/maps |
+| src/mappers-$id/api-response.js | envelope/status/pagination ตามสเปก |
+| src/middlewares-$id/pagination-middleware.js | queryParser() และกฎ page/limit |
 
-## Entryและpackage
+ไม่ต้องสร้าง Controller เพิ่ม ชื่อที่บอกว่า controller ในแนวคิดหมายถึงส่วนรับ/ตอบ HTTP ซึ่งอยู่ใน route.js ของ template นี้
 
-server.jsของรุ่นนี้พึ่งเฉพาะsrcและpackages ไม่importscriptนอกsrc เปิดได้ด้วยstartcommand:
+## Entry และ package.json
+
+คง type: module และ dependencies ที่อาจารย์ให้ เพิ่ม script เฉพาะที่ต้องใช้ ไม่ทับ package.json ทั้งไฟล์:
 
 ```json
-{"type":"module","scripts":{"start":"node --env-file-if-exists=.env src/server.js"}}
+{"scripts":{"start":"node --env-file-if-exists=.env src/app.js"}}
 ```
 
-อย่าทับpackage.jsonทั้งไฟล์ถ้าอาจารย์มีscripts/dependenciesอื่น ให้รวมเฉพาะส่วนที่ต้องใช้ คงexpress/mysql2/http-statusและlockfileที่เตรียมแล้ว
+ถ้าใช้ helpers ของชุดนี้ ต้องย้าย settings.js/database-mode.js/app-error.js/error-handler.js ที่ source import ด้วย และตั้ง .env ของตัวเอง ถ้าจะตัด helpers ออก ต้องแก้ imports/การอ่าน config ให้ครบ
 
 ## ต่อฐานโจทย์
 
-ตั้งDB_MODE=exam, DB_NAME/STUDENT_ID/STUDENT_NAME/STUDENT_KEYเป็นค่าจริงครบ โหมดนี้SELECT1ตรวจการเชื่อมต่อ ไม่ต้องมีmarkerและไม่สร้าง/seed/resettable ตรวจSQL/NOTNULL/FK/DTOและinputให้ตรงก่อนยิงrequestเขียนข้อมูล
+ตั้ง DB_MODE=exam และ DB_NAME/STUDENT_ID/STUDENT_NAME/STUDENT_KEY เป็นค่าจริงครบ โหมดนี้ตรวจเชื่อมต่อ ไม่สร้าง/seed/resetฐาน ใช้ SQL อาจารย์ ไม่ใช้ db:init หรือชุดทดสอบฐานฝึกกับฐานสอบ
 
-ใช้SQLอาจารย์ตามคำสั่ง ไม่ใช้sql/schema.sqlของตัวอย่างแทนโดยอัตโนมัติ ไม่ใช้db:initหรือtestของโครงกับฐานสอบ
+ถ้าอาจารย์ให้ rename -$id เป็นรหัสตัวเอง ต้องแก้ทั้ง folder และทุก import ที่อ้างถึง ส่งเฉพาะโค้ด/config ตามคำสั่ง ไม่รวม node_modules หรือคู่มือทั้งหมดโดยอัตโนมัติ
 
-## ตรวจว่าใส่โครงในtemplateได้
+## ตรวจการประกอบกับ ZIP
 
 ```sh
 npm run verify:template -- --template /absolute/path/midterm-exam-esm-template.zip
 ```
 
-คำสั่งนี้ใช้เฉพาะตอนตรวจโครงตัวอย่าง: แตกZIPเป็นสำเนาชั่วคราว คัดลอกsrc/app/server/configs/routes/controllers/services/repositories/mappers/middlewares เพิ่มscripts.startเฉพาะในสำเนาโดยคงscripts/dependenciesอื่น แล้วตรวจAPIcontractsและรันnpm startจริงเพื่อGETstudent-info/productsกับฐานฝึก ไม่ทับprojectต้นฉบับ ไม่ตรวจว่าschema/สเปกที่แก้ใหม่ถูกทุกกรณี
+คำสั่งแตก ZIP เป็นสำเนาชั่วคราว คัดลอก source ที่ชื่อตรง template และ helpers เพิ่ม start ที่เรียก app.js โดยคง scripts/dependencies อื่น แล้วทดสอบกับฐานฝึกและ npm start จริง ไม่แก้ ZIP ต้นฉบับ ไม่ยืนยัน schema/response ของโจทย์ที่ยังไม่ได้ปรับ

@@ -35,6 +35,6 @@ default page1/limit10, maxlimit100; queryต้องเป็นstringตัว
 - total0 →[] totalPages0 ห้ามfallbacktotalไปค่าอื่นด้วย `||`
 - limit500 →normalize100 แล้วค่อยหาoffset
 
-โค้ดจริง: [parser](../src/middlewares-$id/pagination.js), [repository](../src/repositories-$id/catalog-repository.js), [metadata](../src/mappers-$id/api-response.js), [handler](../src/controllers-$id/03-read-products.js)
+โค้ดจริง: [parser](../src/middlewares-$id/pagination-middleware.js), [repository](../src/repositories-$id/repository.js), [metadata](../src/mappers-$id/api-response.js), [handler](../src/routes-$id/route.js)
 
 ถ้าโจทย์กำหนดไม่มีqueryให้คืนทั้งหมด ต้องแก้ทั้งparser/SQL/response ไม่แก้แค่default ดู [optional recipe](../recipes/README.md)

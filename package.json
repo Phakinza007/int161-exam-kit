@@ -1,6 +1,6 @@
 {
   "name": "int161-exam-kit",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "description": "INT161 ready-to-adapt Express ESM and MySQL exam template",
@@ -8,7 +8,7 @@
     "node": ">=22.9.0"
   },
   "scripts": {
-    "start": "node --env-file-if-exists=.env src/server.js",
+    "start": "node --env-file-if-exists=.env src/app.js",
     "doctor": "node --env-file-if-exists=.env scripts/doctor.mjs",
     "db:init": "node --env-file-if-exists=.env scripts/init-db.mjs",
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",

@@ -21,11 +21,11 @@ with zipfile.ZipFile(sys.argv[1]) as z:
  const pkg=JSON.parse(await readFile(join(target,'package.json'),'utf8'));
  if(pkg.type!=='module'||!pkg.dependencies?.express?.match(/^\^?5\./)||!pkg.dependencies?.mysql2?.match(/^\^?3\./)||!pkg.dependencies?.['http-status']?.match(/^\^?2\./))throw new Error('Unexpected teacher template dependencies; inspect before migrating');
  const source=join(root,'src');
- const files=['app.js','server.js','configs-$id','routes-$id','services-$id','repositories-$id','mappers-$id','middlewares-$id','controllers-$id'];
+ const files=['app.js','test-service.js','configs-$id','routes-$id','services-$id','repositories-$id','mappers-$id','middlewares-$id'];
  for(const name of files)await cp(join(source,name),join(target,'src',name),{recursive:true});
  await symlink(join(root,'node_modules'),join(target,'node_modules'),'dir');
  // Apply the documented package patch only to this disposable copy. Preserve all other scripts/dependencies.
- pkg.scripts={...pkg.scripts,start:'node --env-file-if-exists=.env src/server.js'};
+ pkg.scripts={...pkg.scripts,start:'node --env-file-if-exists=.env src/app.js'};
  await writeFile(join(target,'package.json'),JSON.stringify(pkg,null,2)+'\n');
  const childEnv={...process.env};delete childEnv.NODE_TEST_CONTEXT;
  const result=spawnSync(process.execPath,['--test','tests/integration.test.js'],{cwd:root,env:{...childEnv,KIT_VERIFY_APP_URL:pathToFileURL(join(target,'src/app.js')).href},stdio:'inherit'});

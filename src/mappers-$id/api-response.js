@@ -8,3 +8,11 @@ export function success(res, data, status = 200, pagination) {
 export function metadata(total, {page,limit}) {
   return {total:Number(total),page,limit,totalPages:Math.ceil(total/limit),hasNextPage:page*limit<total,hasPrevPage:page>1};
 }
+
+// Same public signature as the teacher ZIP. Adapt body/status to the actual exam spec.
+// Paginated input is {items: DTO[], totalItems: count}; never attach total to an Array.
+export function apiResponse(res,data,pagination=null,status=200) {
+ return pagination
+  ? success(res,data.items,status,metadata(data.totalItems,pagination))
+  : success(res,data,status);
+}

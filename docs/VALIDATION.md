@@ -1,19 +1,15 @@
 # ผลตรวจ Template
 
-รุ่น2.1.0 ตรวจบนmacOS, Node26.5.1 และMySQL9.7.1ในเครื่อง
+รุ่น 3.0.0 ตรวจบน macOS, Node 26.5.1 และ MySQL 9.7.1 ในเครื่อง
 
-- npm test: 25/25 รวมguardโหมดexamและการปฏิเสธdb:initในโหมดexam
-- สำเนาteacher template: shared API contractsผ่าน9/9 และเปิดnpm startจริงในสำเนาได้HTTP200ทั้งstudent-info/products
-- เปิดsrc/server.jsจริงทั้งpractice/examได้HTTP200 โดยใช้ฐานตัวอย่างเดียวกันเพื่อตรวจstartup (ยังไม่ใช่การตรวจschemaข้อสอบอื่น)
+- npm test: 31/31 ผ่าน รวม CRUD persistence, DTO/types/JOIN/date, pagination, error contracts, unchanged update, string/composite key และ request samples กับ MySQL จริง
+- เทียบ midterm-exam-esm-template.zip ที่ได้รับ: มี src ครบทั้ง 9 path เดิม ไม่มี controllers-$id หรือ server.js; app.js เป็น entrypoint, route.js รับ req/res เอง
+- ตรวจสำเนา ZIP อาจารย์จริงด้วย verify:template: API contracts 9/9 และ npm start เรียก app.js ได้ HTTP 200 ทั้ง student-info/products โดยไม่แก้ ZIP ต้นฉบับ
+- Regression: app.js ที่พังเฉพาะ runtime ถูกตรวจพบ แม้ import factory ผ่าน
+- ชื่อ service getObject/getAllObjects/createObject/updateObject/removeObject, repository findOne/findAll/create/update/remove, EntityDtoMapper.map/maps, apiResponse และ queryParser() ใช้รูปแบบเดียวกับ template
+- เอกสารและ Diagram เปิดไฟล์ตามชื่อใหม่ สีโค้ดแยกภาษาและไม่ตีความ URL ในคำสั่ง shell เป็น comment
+- DB_MODE=practice ตรวจ prefix+marker; DB_MODE=exam บังคับ DB/identity จริง ตรวจ connectivity ไม่สร้าง/resetฐาน db:init/tests ปฏิเสธ exam mode
+- หน้า localhost เป็นเครื่องมืออ้างอิงเพิ่มเติม ไม่ใช่ source ที่ต้องส่งทั้งหมด ส่วน settings/database-mode/app-error/error-handler, factories, sample schema, timestamp และ pagination policy ที่เพิ่ม ระบุไว้ในแผนที่ไฟล์
+- Postman collection ตรวจโครงสร้างและมี curl smoke test กับ API/MySQL จริง ไม่ได้เปิด Postman GUI ทดสอบ
 
-- QUESTIONS-AND-ANSWERS.mdรวม6หน้าคำถาม/วิธีคิด/วิธีทำ/เฉลยJSและSQL ใช้sourceเดียวกับtemplate ไม่เพิ่มโจทย์ฝึกใหม่
-- srcเป็นโครงAPIที่เปิดได้ด้วยnpm start; controllers/service/repository/mapperแยกชัดเจน
-- Regression: POST/PUTจาก.httpและPostmanผ่านตารางชั่วคราวที่บังคับram_gb/storage_gb/color NOT NULL; missing/nullได้400แทน500; request curlส่งfieldsครบ
-- Regression: verify-templateปฏิเสธserver.jsที่พัง แม้app factoryผ่าน
-- testsตรวจCRUD persistence, DTO/types/JOIN/date, pagination, exception, unchangedupdate, string/compositekey และrequestsกับMySQLจริง
-- DB_MODE=practiceตรวจprefix+markerก่อนเปิดAPI; DB_MODE=examต้องระบุDB_NAME/STUDENT_ID/STUDENT_NAME/STUDENT_KEYเป็นค่าจริงครบ ตรวจconnectivityอย่างเดียว ไม่สร้าง/resetฐาน
-- db:initและtestsอัตโนมัติปฏิเสธDB_MODE=exam; ชุดtestเป็นของschemaตัวอย่าง ไม่ใช่runnerตัดสินข้อสอบที่แก้schemaแล้ว
-- ตรวจสำเนาteacherZIPในdirectoryชั่วคราวและตรวจsourceZIPที่แตกใหม่โดยบล็อกnetworkภายนอกแต่อนุญาตlocalhost
-- เอกสาร.md; โค้ด.jsปกติ; ไม่มีHTML/โฟลเดอร์questions/แบบฝึกหัดเพิ่มเติม
-
-ต้องเตรียมdependenciesไว้ก่อนใช้ออฟไลน์ ยังไม่ได้รับรองWindowsหรือMySQLทุกรุ่น Postmancollectionตรวจโครงสร้าง แต่ไม่ได้เปิดGUIทดสอบ การทำงานกับschemaและcontractข้อสอบต้องปรับและตรวจตามโจทย์จริง
+schema และ response ของข้อสอบจริงต้องปรับตามสเปก ผลตรวจนี้ใช้ฐานตัวอย่าง ไม่รับรองทุก schema/Windows/MySQL ทุกรุ่น ต้องเตรียม dependencies ไว้ก่อนตัดอินเทอร์เน็ต

@@ -1,17 +1,17 @@
-# 03 — Controller, Service, Repository
+# 03 — HTTP handler ใน route.js, Service, Repository
 
 ## ใครรับผิดชอบอะไร
 
 | ชั้น | รับผิดชอบ | ไฟล์จริง |
 | --- | --- | --- |
-| app/router | base path, method, middleware, ประกอบ dependencies | [catalog-route.js](../src/routes-$id/catalog-route.js) |
-| controller/handler | อ่าน req เรียกservice ส่ง HTTP status/body | [เฉลย6ข้อ](../src/controllers-$id) |
-| service | validation, business rule, not-found, เลือกDTO | [catalog-service.js](../src/services-$id/catalog-service.js) |
-| repository | querySQLและคืนข้อมูล/ผลกระทบจากDB | [catalog-repository.js](../src/repositories-$id/catalog-repository.js) |
-| mapper | เลือกฟิลด์/แปลงชื่อและชนิดข้อมูล | [product-mapper.js](../src/mappers-$id/product-mapper.js) |
+| app/router | base path, method, middleware, ประกอบ dependencies | [route.js](../src/routes-$id/route.js) |
+| handler ใน route.js/handler | อ่าน req เรียกservice ส่ง HTTP status/body | [เฉลย6ข้อ](../src/routes-$id) |
+| service | validation, business rule, not-found, เลือกDTO | [service.js](../src/services-$id/service.js) |
+| repository | querySQLและคืนข้อมูล/ผลกระทบจากDB | [repository.js](../src/repositories-$id/repository.js) |
+| mapper | เลือกฟิลด์/แปลงชื่อและชนิดข้อมูล | [entity-dto-mapper.js](../src/mappers-$id/entity-dto-mapper.js) |
 | error middleware | แปลงerrorเป็นHTTPและJSONที่ตรงcontract | [error-handler.js](../src/middlewares-$id/error-handler.js) |
 
-controllerไม่ได้จำเป็นต้องมีfolderชื่อcontroller ในโครงนี้ใช้ controllers-$id เพื่อให้หาจุดรับreq/ส่งresได้ง่าย นี่เป็นการจัดไฟล์ของผู้ช่วย ไม่ใช่ข้อบังคับชื่อfolderใหม่จากอาจารย์
+หน้าที่ Controller ตามแนวคิดอยู่ใน async handler ของ route.js ตาม ZIP อาจารย์ จึงไม่มีโฟลเดอร์ Controller แยก ทั้งจับคู่ URL และรับ/ตอบ HTTP อยู่ในไฟล์เดียวกัน
 
 ## ตามหนึ่ง request ให้ครบ
 
@@ -21,7 +21,7 @@ PUT /products/12 → routerเลือกhandler → numericIdตรวจ12 �
 
 ## ทำไมส่ง db/service เป็นargument
 
-`createCatalogRepository(db)` รับpool, `createCatalogService(repo)` รับrepository และ handlerรับservice ทำให้เห็นการประกอบตรงๆ ทดสอบกับฐานฝึกได้และไม่ต้องเปิดpoolใหม่ทุกrequest ใช้ poolที่ประกอบตอนเริ่มapp
+`createRepository(db)` รับpool, `createService(repo)` รับrepository และ handlerรับservice ทำให้เห็นการประกอบตรงๆ ทดสอบกับฐานฝึกได้และไม่ต้องเปิดpoolใหม่ทุกrequest ใช้ poolที่ประกอบตอนเริ่มapp
 
 ## เปลี่ยนโจทย์แล้วแก้ที่ไหน
 

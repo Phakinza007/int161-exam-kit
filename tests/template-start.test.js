@@ -10,7 +10,7 @@ async function verify(brokenServer=false){
   const fixture=join(temp,'kit');
   for(const name of ['src','sql','scripts','tests','requests'])await cp(name,join(fixture,name),{recursive:true});
   await cp('package.json',join(fixture,'package.json'));await symlink(resolve('node_modules'),join(fixture,'node_modules'),'dir');
-  if(brokenServer)await writeFile(join(fixture,'src/server.js'),"throw new Error('ENTRYPOINT_REGRESSION');\n");
+  if(brokenServer){const appPath=join(fixture,'src/app.js');const source=await readFile(appPath,'utf8');await writeFile(appPath,source.replace('const config=loadSettings(),db=createDb(config);',"throw new Error('ENTRYPOINT_REGRESSION');\nconst config=loadSettings(),db=createDb(config);"));}
   const pkg=JSON.parse(await readFile('package.json','utf8'));
   const teacher={name:'teacher-template',type:'module',private:true,scripts:{test:'node --version'},dependencies:pkg.dependencies};
   const archive=join(temp,'teacher.zip');
@@ -22,6 +22,6 @@ async function verify(brokenServer=false){
 test('teacher template missing start script is patched and launched through real npm start',async()=>{
  const r=await verify();assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/npm start.*HTTP 200/);
 });
-test('template verification rejects a broken server entry even when app factory contracts pass',async()=>{
+test('template verification rejects a broken app.js entry even when app factory contracts pass',async()=>{
  const r=await verify(true);assert.notEqual(r.status,0,'factory-only validation must not report a broken server as passing');assert.match(r.stderr,/npm start exited before readiness/);
 });

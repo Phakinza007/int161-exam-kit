@@ -1,53 +1,67 @@
-# INT161 Exam Template
+# INT161 — Template ตามโครงอาจารย์ + คู่มือ Offline
 
-ดาวน์โหลดแล้วใช้เป็นโครงช่วยทำข้อสอบ: มีโค้ด CRUD, DTO, Pagination และ Exception Handling ที่ประกอบและรันได้แล้ว พร้อมคอมเมนต์ `ADAPT` บอกจุดที่ต้องเปลี่ยนตามโจทย์
+โค้ด CRUD, DTO, Pagination และ Exception Handling สำหรับเปิดเทียบขณะทำข้อสอบ **ตั้งชื่อไฟล์หลักตาม midterm-exam-esm-template.zip แล้ว** HTTP handler อยู่ใน route.js ไม่แยก Controller และเปิด server จาก app.js
 
-เริ่มที่ [START-HERE.th.md](START-HERE.th.md) เพื่อเปิดโครง แล้วใช้ [GUIDE.md](GUIDE.md) ระหว่างแก้ข้อสอบ
+เริ่มที่ [START-HERE](START-HERE.th.md) → [แผนที่ไฟล์อาจารย์](guides/00-template-map.md) → [GUIDE แบบละเอียด](GUIDE.md)
 
 ```text
 src/
-  app.js / server.js       ประกอบ API และเปิด port
-  configs-$id/             DB, mode, identity
-  routes-$id/              method/path/middleware
-  controllers-$id/         req/res แยกตาม CRUD + 3 Read
-  services-$id/            validation และ business rules
-  repositories-$id/        SQL, PK/FK, JOIN, COUNT
-  mappers-$id/             DTO และ response envelope
-  middlewares-$id/         pagination/error handling
-sql/                       schema ของฐานตัวอย่าง
-requests/                  request สำหรับตรวจ API
-GUIDE.md                   วิธีปรับโครงให้ตรงโจทย์ที่ได้รับ
-INT161-MIDTERM/             สรุปอ่านประกอบ 9 บท
+├── app.js
+├── test-service.js
+├── configs-$id/db-config.js
+├── routes-$id/route.js
+├── services-$id/service.js
+├── repositories-$id/repository.js
+├── mappers-$id/api-response.js
+├── mappers-$id/entity-dto-mapper.js
+└── middlewares-$id/pagination-middleware.js
 ```
 
-## Localhost สำหรับเปิดคู่มือขณะเขียนโค้ด
+ลำดับทำงาน: Request → route.js (req/res) → service.js → repository.js → MySQL แล้ว Service เรียก EntityDtoMapper.map/maps ก่อน route.js ส่ง apiResponse
 
-รัน `npm run study` แล้วเปิด http://127.0.0.1:8171 แบ่ง 6 หมวด: เริ่มใช้งาน, งานปฏิบัติ, เนื้อหาอ้างอิง, Postman, Debug และ source ตาม Layer มีสารบัญในเอกสาร, Diagram 6 แบบที่กดเปิดไฟล์ได้ และสีโค้ดแยกภาษา Terminal/JavaScript/SQL/JSON พร้อมลิงก์คู่มือไปยังโค้ดที่เกี่ยวข้อง พร้อมค้นหาและคัดลอกโค้ด ใช้ได้ offline ไม่ต้องต่อฐานข้อมูลสำหรับหน้าเอกสาร ส่วน API ให้เปิดอีก Terminal ด้วย `npm start` ที่ port 3000
+## เปิดใช้งาน
 
-อ่าน [วิธีเชื่อม Postman แบบละเอียด](POSTMAN.md) มีทั้ง Import collection และสร้าง request ด้วย URL เต็มสำหรับโหมด offline
+เตรียม Node >=22.9, MySQL และ dependencies ในช่วงที่ใช้อินเทอร์เน็ตได้:
 
-## คำถาม เฉลย วิธีคิด และวิธีทำ
+```sh
+npm ci
+cp .env.example .env
+```
 
-เปิด [QUESTIONS-AND-ANSWERS.md](QUESTIONS-AND-ANSWERS.md) แล้วเลือกส่วนที่ต้องการ แต่ละหน้าจับคู่คำถามเดิมกับJS/SQLที่โครงใช้อยู่และอธิบายเหตุผลทีละขั้น
+แก้ข้อมูลเชื่อมต่อใน .env ถ้าเปิดตัวอย่างฝึกใช้ DB_MODE=practice แล้ว npm run db:init จากนั้นเปิดคนละ Terminal:
 
-## เลือกส่วนที่จะใช้
+```sh
+npm run study   # คู่มือ http://127.0.0.1:8171
+npm start       # API http://127.0.0.1:3000/api/demo001
+```
 
-| งาน | โค้ดเริ่มต้น | วิธีปรับ |
+หน้า localhost แบ่ง 6 หมวด มีค้นหา สารบัญ สีโค้ดแยกภาษา และ Diagram กดเปิดไฟล์จริงได้ อ่าน [Postman](POSTMAN.md) สำหรับ Import collection และวิธีส่ง URL เต็มแบบ offline
+
+## เลือกงานที่กำลังทำ
+
+| งาน | โค้ด req/res อยู่ในไฟล์เดียวกัน | คู่มือ + คำถาม + เฉลย |
 | --- | --- | --- |
-| Create | [01-create-product.js](src/controllers-$id/01-create-product.js) | [Create guide](guides/operations/01-create-product.md) |
-| Read list แบรนด์ | [02-read-brands.js](src/controllers-$id/02-read-brands.js) | [List guide](guides/operations/02-read-brands.md) |
-| Read list + Pagination/DTO | [03-read-products.js](src/controllers-$id/03-read-products.js) | [Pagination guide](guides/operations/03-read-products.md) |
-| Read detail + JOIN/DTO | [04-read-product-detail.js](src/controllers-$id/04-read-product-detail.js) | [Detail guide](guides/operations/04-read-product-detail.md) |
-| Update | [05-update-product.js](src/controllers-$id/05-update-product.js) | [Update guide](guides/operations/05-update-product.md) |
-| Delete | [06-delete-product.js](src/controllers-$id/06-delete-product.js) | [Delete guide](guides/operations/06-delete-product.md) |
+| C1 สร้างสินค้า | [route.js](src/routes-$id/route.js) POST | [Create](guides/operations/01-create-product.md) |
+| R1 รายการแบรนด์ | [route.js](src/routes-$id/route.js) GET /brands | [Read list](guides/operations/02-read-brands.md) |
+| R2 รายการ + Pagination | [route.js](src/routes-$id/route.js) GET /products | [Pagination](guides/operations/03-read-products.md) |
+| R3 รายละเอียด | [route.js](src/routes-$id/route.js) GET /products/:id | [Read detail](guides/operations/04-read-product-detail.md) |
+| U1 แก้ไข | [route.js](src/routes-$id/route.js) PUT | [Update](guides/operations/05-update-product.md) |
+| D1 ลบ | [route.js](src/routes-$id/route.js) DELETE | [Delete](guides/operations/06-delete-product.md) |
 
-controllerเรียก service/repository/mapper ที่มีครบในsrc ไม่ต้องประกอบจากโจทย์ฝึกใหม่ products/brands เป็นโครงที่ดัดแปลงจากงานที่เฉลยแล้ว เปลี่ยนชื่อtable/field/keyและcontractตามข้อสอบจริง ส่วนtags/composite key และrecipesเป็นโค้ดทางเลือกที่หยิบใช้หรือลบออกเมื่อไม่เกี่ยวข้อง
+ดู [คำถามและวิธีคิดรวม](QUESTIONS-AND-ANSWERS.md) และ [สรุป 9 บท](INT161-MIDTERM) สำหรับอ่านประกอบ ไม่มีโฟลเดอร์โจทย์ใหม่ให้ทำเพิ่ม
 
-## สองโหมด
+## ส่วนที่เพิ่มจาก ZIP อาจารย์
 
-- `DB_MODE=practice`: เปิดโครงกับฐานตัวอย่างที่แยกไว้ ใช้ `npm run db:init` ได้
-- `DB_MODE=exam`: เชื่อม `DB_NAME` ที่ระบุเอง และบังคับ `STUDENT_ID`/`STUDENT_NAME`/`STUDENT_KEY` ให้ครบเป็นค่าจริง ไม่สร้าง/resetฐาน ต้องปรับSQL/schema/contractตามโจทย์และใช้SQLอาจารย์ตามคำสั่ง
+- settings.js/database-mode.js สำหรับ .env และแยก practice/exam
+- app-error.js/error-handler.js สำหรับ error contract
+- factories สำหรับทดสอบแยกฐาน ไม่ได้แยก HTTP handler ไปอีก layer
+- schema products/brands, tags/composite key, validation, timestamp และ pagination policy ของตัวอย่าง ต้องแก้ตามสเปกสอบจริง
+- local-study, guides, tests, scripts และ requests เป็นเครื่องมืออ้างอิง ไม่ต้องส่งทั้งหมด
 
-เตรียม Node/MySQL และ `npm ci` ก่อนตัดอินเทอร์เน็ต เอกสาร.mdและโค้ด.jsเปิดอ่านออฟไลน์ได้ หรือเปิดหน้าlocalhostด้วยnpm run study ไม่มีโฟลเดอร์โจทย์ให้ทำเพิ่ม
+ชื่อไฟล์/ฟังก์ชันตรง template แต่ไม่ได้คัดลอก placeholder หรือบั๊กเดิมทุกบรรทัด รายละเอียดความต่างอยู่ใน [แผนที่ไฟล์](guides/00-template-map.md)
 
-[อ่านสรุป9บท](INT161-MIDTERM) · [ใส่ลงteacher template](guides/05-template.md) · [แก้error/ก่อนส่ง](guides/06-offline.md) · [ผลตรวจ](docs/VALIDATION.md)
+## ฐานสอบและการส่งงาน
+
+DB_MODE=exam บังคับ DB_NAME/STUDENT_ID/STUDENT_NAME/STUDENT_KEY จริงครบ ไม่สร้าง/resetฐาน ใช้ SQL อาจารย์และปรับ schema/body/DTO/path/status ก่อนทดสอบ ไม่ใช้ db:init หรือชุดทดสอบฐานฝึกกับฐานสอบ
+
+[ใส่ลง teacher template](guides/05-template.md) · [Debug/Offline/ก่อนส่ง](guides/06-offline.md) · [ผลตรวจ](docs/VALIDATION.md)

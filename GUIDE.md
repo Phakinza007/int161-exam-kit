@@ -1,6 +1,6 @@
 # GUIDE — ใช้โครงนี้ทำข้อสอบทีละขั้น
 
-คู่มือนี้สำหรับ **int161-exam-kit** ที่ใช้ products/brands และ folder `services-$id`, `repositories-$id` โค้ดใน `src/` ทำงานครบอยู่แล้ว ใช้เป็นโครงอ้างอิงแล้วปรับตามสเปกที่ได้รับ ไม่ใช่ไฟล์พร้อมส่งทุกข้อสอบ
+คู่มือนี้สำหรับ **int161-exam-kit** ที่ใช้ products/brands และ folder `services-$id`, `repositories-$id` ไฟล์หลักตั้งชื่อตรง ZIP อาจารย์ และโค้ดใน `src/` ทำงานครบอยู่แล้ว ใช้เป็นโครงอ้างอิงแล้วปรับตามสเปกที่ได้รับ ไม่ใช่ไฟล์พร้อมส่งทุกข้อสอบ
 
 ถ้าคุณกำลังเปิด `project/` แบบ Students API ที่ดาวน์โหลดจากเว็บ ให้ใช้ GUIDE.md ภายในโฟลเดอร์นั้นแทน ชื่อไฟล์และรูปแบบ response ของสองชุดต่างกัน
 
@@ -92,17 +92,15 @@ npm start
 
 | ไฟล์/ตำแหน่ง | ทำอะไร | เมื่อไรต้องแก้ |
 | --- | --- | --- |
-| [src/server.js](src/server.js) | โหลด config ต่อ DB และ listen | entrypoint หรือ port ตาม template |
 | [src/app.js](src/app.js) | ประกอบ layers, JSON parser, prefix, error handler | เปลี่ยน base path หรือ router |
 | [settings.js](src/configs-$id/settings.js) | อ่าน .env / mode / identity | config ของโจทย์ |
 | [db-config.js](src/configs-$id/db-config.js) | สร้าง MySQL pool | ตัวเลือกเชื่อมต่อ |
-| [catalog-route.js](src/routes-$id/catalog-route.js) | method/path → handler | endpoint, params, middleware |
-| [controllers](src/controllers-$id) | req → service → HTTP response | อ่าน input / status / response |
-| [catalog-service.js](src/services-$id/catalog-service.js) | validation, duplicate, not-found, DTO | body และ business rules |
-| [catalog-repository.js](src/repositories-$id/catalog-repository.js) | SQL และผลฐานข้อมูล | schema, JOIN, WHERE, key |
-| [product-mapper.js](src/mappers-$id/product-mapper.js) | Entity → summary/detail DTO | ชื่อและชนิด field ที่ส่งออก |
+| [route.js](src/routes-$id/route.js) | method/path → handler | endpoint, params, middleware |
+| [service.js](src/services-$id/service.js) | validation, duplicate, not-found, DTO | body และ business rules |
+| [repository.js](src/repositories-$id/repository.js) | SQL และผลฐานข้อมูล | schema, JOIN, WHERE, key |
+| [entity-dto-mapper.js](src/mappers-$id/entity-dto-mapper.js) | EntityDtoMapper.map/maps → DTO | ชื่อและชนิด field ที่ส่งออก |
 | [api-response.js](src/mappers-$id/api-response.js) | success envelope และ metadata | โครง JSON ชั้นนอก |
-| [pagination.js](src/middlewares-$id/pagination.js) | ตรวจ query และคำนวณ offset | default, max, invalid policy |
+| [pagination-middleware.js](src/middlewares-$id/pagination-middleware.js) | ตรวจ query และคำนวณ offset | default, max, invalid policy |
 | [app-error.js](src/middlewares-$id/app-error.js) | custom error | constructor ที่ handler อ่าน |
 | [error-handler.js](src/middlewares-$id/error-handler.js) | error → status/JSON | error contract |
 
@@ -114,13 +112,13 @@ npm start
 
 ```text
 Client → express.json → /api/demo001 → GET /products/:id
-       → controller อ่าน req.params.id เป็น "7"
+       → handler ใน route.js อ่าน req.params.id เป็น "7"
        → numericId ตรวจและแปลงเป็น 7
-       → service.getProduct(7)
-       → repo.findProduct(7) → SQL + MySQL
+       → service.getObject(7)
+       → repo.findOne(7) → SQL + MySQL
        ← entity หรือ null
-       → service ตรวจพบ/ไม่พบ → detail(entity)
-       ← DTO → controller → success(res, DTO) → HTTP 200 + JSON
+       → service ตรวจพบ/ไม่พบ → mapper.map(entity, 'full')
+       ← DTO → handler ใน route.js → apiResponse(res, DTO) → HTTP 200 + JSON
 ```
 
 ถ้า repository คืน null: service โยน AppError 404 → Express 5 ส่ง rejected Promise เข้า error handler → HTTP 404 + error envelope ไม่เรียก mapper ด้วย null
@@ -128,12 +126,12 @@ Client → express.json → /api/demo001 → GET /products/:id
 จำหน้าที่จากโค้ด:
 
 ```js
-// Controller: จัดการ HTTP
-const dto = await service.getProduct(numericId(req.params.id));
-return success(res, dto);
+// HTTP handler ใน route.js: จัดการ HTTP
+const dto = await service.getObject(numericId(req.params.id));
+return apiResponse(res, dto);
 
 // Repository: ดึงแถว; ไม่ใช้ res/req
-findProduct: id => one(PRODUCT_SELECT + ' WHERE p.id=?', [id])
+findOne: id => one(PRODUCT_SELECT + ' WHERE p.id=?', [id])
 
 // Mapper: สร้างข้อมูลออก; ไม่ query DB
 price: Number(entity.price)
@@ -160,7 +158,7 @@ Errors: condition → status / code / message
 1. หาว่าข้อมูลอยู่ตารางใด: ในโครงนี้คือ brands.name
 2. Repository JOIN brands แล้ว alias `brand_name`
 3. Mapper อ่าน `entity.brand_name` แล้วส่ง key `brandName`
-4. Controller ใช้ detail DTO ไม่ใช่ summary ซึ่งไม่มี field นี้
+4. HTTP handler ใน route.js ใช้ detail DTO ไม่ใช่ summary ซึ่งไม่มี field นี้
 5. ตรวจ JSON จริงว่ามีค่าและชนิดถูก อย่าตรวจแค่ HTTP 200
 
 หากสเปกเปลี่ยนจาก products เป็น resource อื่น ให้จด mapping ของทุกชื่อก่อน rename เพื่อไม่ให้ SQL เปลี่ยนแล้ว service/mapper ยังอ้างชื่อเดิม
@@ -171,7 +169,7 @@ Errors: condition → status / code / message
 2. แก้ repository ให้ SELECT ตาราง/คอลัมน์และ key ถูกก่อน
 3. แก้ validation และ business rules ใน service
 4. แก้ mapper และ response envelope
-5. แก้ controller/route ให้ method/path/input/status ตรง
+5. แก้ handler ใน route.js/route ให้ method/path/input/status ตรง
 6. แก้ pagination และ error contract
 7. ทดสอบ happy path → negative cases → persistence
 
@@ -181,7 +179,7 @@ Errors: condition → status / code / message
 
 ### 7.1 Create — เพิ่มข้อมูล
 
-เปิด [controller Create](src/controllers-$id/01-create-product.js), `createProduct`/`productInput` ใน service และ `createProduct` ใน repository
+เปิด [handler ใน route.js Create](src/routes-$id/route.js), `createObject`/`productInput` ใน service และ `createObject` ใน repository
 
 ```text
 req.body → ตรวจชนิด/required → allowlist
@@ -207,25 +205,25 @@ req.body → ตรวจชนิด/required → allowlist
 
 ### 7.2 Read 1 — รายการที่ไม่แบ่งหน้า
 
-เปิด [controller brands list](src/controllers-$id/02-read-brands.js) → service.listBrands → repo.listBrands
+เปิด [handler ใน route.js brands list](src/routes-$id/route.js) → service.listBrands → repo.listBrands
 
 โครงนี้ส่งแถว brands ที่ SELECT ไว้โดยตรง หากโจทย์กำหนด DTO ให้เพิ่ม mapper และ `rows.map(...)` ก่อนตอบ รายการว่างมักส่ง [] ตาม contract ไม่ใช่ return null โดยไม่ดูสเปก
 
 ### 7.3 Read 2 — รายการแบบ Pagination
 
-เปิด [controller products list](src/controllers-$id/03-read-products.js) route ต้องเรียก queryParser ก่อน handler เพื่อให้มี req.pagination
+เปิด [handler ใน route.js products list](src/routes-$id/route.js) route ต้องเรียก queryParser ก่อน handler เพื่อให้มี req.pagination
 
 ```text
 ?page=2&limit=10 → {page:2,limit:10,offset:10}
-               → repo.listProducts + repo.countProducts
-               → items.map(summary) → metadata → HTTP 200
+               → repo.findAll + repo.countAll
+               → mapper.maps(items, 'summary') → metadata → HTTP 200
 ```
 
 ถ้าโจทย์เพิ่ม filter ให้ส่ง filter ไปทั้ง list และ count ดูส่วน 9 อย่าคิดว่าโครงเดิมรองรับ search/filter แล้วโดยไม่แก้ SQL
 
 ### 7.4 Read 3 — รายตัว
 
-เปิด [controller detail](src/controllers-$id/04-read-product-detail.js) → service.getProduct → repo.findProduct → detail
+เปิด [handler ใน route.js detail](src/routes-$id/route.js) → service.getObject → repo.findOne → detail
 
 - อ่าน ID จาก req.params.id ไม่ใช่ req.query.id
 - numeric ID ต้องตรวจเป็นจำนวนเต็มบวก; string key เช่น NA ห้าม Number()
@@ -234,7 +232,7 @@ req.body → ตรวจชนิด/required → allowlist
 
 ### 7.5 Update — แก้ไขข้อมูล
 
-เปิด [controller Update](src/controllers-$id/05-update-product.js) → service.updateProduct → repo.updateProduct
+เปิด [handler ใน route.js Update](src/routes-$id/route.js) → service.updateObject → repo.update
 
 ```text
 ตรวจ existing → validate body → ตรวจ unique กับแถวอื่น
@@ -247,9 +245,9 @@ unique check ต้องอนุญาตค่าเดิมของแถ�
 
 ### 7.6 Delete — ลบข้อมูล
 
-เปิด [controller Delete](src/controllers-$id/06-delete-product.js) → service.removeProduct → repo.removeProduct
+เปิด [handler ใน route.js Delete](src/routes-$id/route.js) → service.removeObject → repo.remove
 
-ตรวจ existing/affectedRows ตามโครง ถ้าลบสำเร็จตอบ `res.status(204).end()` ไม่มี JSON; ถ้าโจทย์กำหนด 200 ให้แก้ตาม body ที่ระบุ ไม่ใช้ success helper กับ 204
+ตรวจ existing/affectedRows ตามโครง ถ้าลบสำเร็จตอบ `res.status(204).end()` ไม่มี JSON; ถ้าโจทย์กำหนด 200 ให้แก้ตาม body ที่ระบุ ไม่ใช้ apiResponse กับ 204
 
 หากถูก FK อ้างอิง โครงตอบ 409 RESOURCE_IN_USE ไม่ลบตารางลูกหรือปิด FK เองโดยไม่มีข้อกำหนด Composite key ต้องมีทุกส่วนใน WHERE ไม่เช่นนั้นอาจลบหลายคู่พร้อมกัน
 
@@ -257,7 +255,7 @@ unique check ต้องอนุญาตค่าเดิมของแถ�
 
 ## 8. DTO: แปลงทั้งชื่อ ชนิด และ field ที่เปิดเผย
 
-โครงแยก summary สำหรับ list และ detail สำหรับรายตัว/Create/Update:
+โครงแยก toSummaryDTO สำหรับ list และ toDetailDTO สำหรับรายตัว/Create/Update:
 
 | DB entity | Response | เหตุผล |
 | --- | --- | --- |
@@ -267,7 +265,7 @@ unique check ต้องอนุญาตค่าเดิมของแถ�
 | release_date | releaseDate: "YYYY-MM-DD" หรือ null | คงวัน/ชนิดให้ตรง |
 | internal_cost | ไม่ส่ง | ไม่อยู่ใน allowlist |
 
-แก้ [product-mapper.js](src/mappers-$id/product-mapper.js) ทั้งสองฟังก์ชันตาม endpoint ที่ใช้ ไม่ return `{...entity}` เพราะคอลัมน์ภายในอาจหลุดออกมา ระวัง `Number(null)` กลายเป็น 0 ถ้า field นั้น nullable ให้แยก null ก่อนตามสเปก
+แก้ [entity-dto-mapper.js](src/mappers-$id/entity-dto-mapper.js) ใน toSummaryDTO/toDetailDTOตาม endpoint ที่ใช้ ไม่ return `{...entity}` เพราะคอลัมน์ภายในอาจหลุดออกมา ระวัง `Number(null)` กลายเป็น 0 ถ้า field นั้น nullable ให้แยก null ก่อนตามสเปก
 
 Envelope คือ JSON ชั้นนอก เช่น `{success, data, timestamp}` ต่างจาก DTO ใน data ถ้าเปลี่ยนเป็น `{status, data}` ต้องแก้ทั้ง success helper และ error handler ให้สอดคล้อง ดู [w6-response.js](recipes/w6-response.js)
 
@@ -371,10 +369,10 @@ curl -i 'http://127.0.0.1:3000/api/demo001/products?page=2&limit=10'
 
 อ่าน [แผนที่ย้ายไฟล์](guides/05-template.md) คง package/dependencies/ชื่อ folder/รูปแบบส่งตามคำสั่ง ไม่ทับ package.json ทั้งไฟล์เพียงเพื่อเพิ่ม scripts.start
 
-- ย้าย repository/service/mapper ที่ใช้จริง และประกอบ route/controller
+- ย้าย repository/service/mapper ที่ใช้จริง และเขียน req/res ใน route.js
 - ย้าย middleware/config ที่ source import ใช้ให้ครบ
 - ถ้าเปลี่ยน `-$id` เป็นรหัสตัวเอง ต้องแก้ import ทุกแห่งด้วย
-- คง entrypoint ที่ start command เรียกจริง
+- คง app.js เป็น entrypoint ที่ npm start เรียกจริง
 - เอกสาร/tests/scripts/SQL ตัวอย่างไม่จำเป็นต้องส่งทั้งหมด
 - ใช้ runner ของอาจารย์และ assertion จากสเปกจริง ตรวจ method/status/body ให้ตรง
 
@@ -392,3 +390,9 @@ curl -i 'http://127.0.0.1:3000/api/demo001/products?page=2&limit=10'
 - ตรวจไฟล์ส่งตามคำสั่งอาจารย์ และบัญชี LEB2 พร้อมใช้งาน
 
 ใช้ [สรุป 9 บท](INT161-MIDTERM) เมื่อต้องทบทวนแนวคิด และ [offline/debug guide](guides/06-offline.md) เมื่อต้องค้นอาการระหว่างปรับโครง
+
+## 15. ไฟล์ตรงกับ ZIP อาจารย์ตรงไหน
+
+ดู [แผนที่ Template อาจารย์](guides/00-template-map.md) ก่อนย้ายงาน รุ่นนี้ไม่มี controllers-$id หรือ server.js แล้ว HTTP handler อยู่ใน routes-$id/route.js และ app.js เปิด server ตามชื่อไฟล์เดิม
+
+ชื่อไฟล์/ฟังก์ชันหลักตรง template แต่ schema products/brands, validation, timestamp, ค่า default pagination, helpers สำหรับ config/error และ factory สำหรับทดสอบเป็นส่วนที่ชุดนี้เติมให้ทำงานได้ ต้องปรับตามสเปกจริง ไม่คัดลอก placeholder table-name หรือจุดที่ template ยังไม่ส่ง id/body เข้า updateObject ตามเดิม

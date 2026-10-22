@@ -25,7 +25,7 @@ importไฟล์ของตัวเองต้องเขียน relativ
 ```js
 const router = express.Router();
 router.get('/products/:id', async (req, res) => {
-  const dto = await service.getProduct(req.params.id);
+  const dto = await service.getObject(req.params.id);
   return res.json({success:true,data:dto});
 });
 app.use('/api/demo001', router);
@@ -46,6 +46,6 @@ Express5ที่ kitใช้ส่ง rejected Promiseจาก async handler�
 
 ## app กับ server ต่างกัน
 
-[app.js](../src/app.js) ประกอบ routes และ export factory แต่ยังไม่เปิดport ส่วน [server.js](../src/server.js) อ่าน config สร้าง pool ตรวจฐานฝึกและ listen การ `node app.js` อย่างเดียวจึงไม่เปิดAPIของkit
+[app.js](../src/app.js) ประกอบ routes และเปิด port เมื่อรันผ่าน npm start หรือ node --env-file-if-exists=.env src/app.js; เมื่อ import เพื่อทดสอบจะไม่เปิด port อัตโนมัติ
 
 เริ่มด้วย [START-HERE](../START-HERE.th.md) และดู [การใส่ใน template](../guides/05-template.md)

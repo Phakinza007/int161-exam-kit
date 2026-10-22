@@ -14,6 +14,9 @@ async function sourceFiles(dir='.'){
 test('Markdown guides resolve local links; six task solutions are ordinary JS; study UI is optional',async()=>{
  const files=await sourceFiles();assert.ok(files.includes('local-study/index.html'));
  for(const path of files.filter(p=>p.endsWith('.md'))){const source=await readFile(path,'utf8');for(const match of source.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)){if(!/^(https?:|#)/.test(match[1]))await access(resolve(dirname(path),match[1].split('#')[0]));}}
- const solutions=files.filter(p=>p.startsWith('src/controllers-$id/')&&p.endsWith('.js'));assert.equal(solutions.length,6);
- for(const path of solutions){assert.match(await readFile(path,'utf8'),/export function/);await access('guides/operations/'+path.split('/').pop().replace('.js','.md'));}
+ const guides=files.filter(p=>p.startsWith('guides/operations/')&&p.endsWith('.md'));assert.equal(guides.length,6);
+ assert.ok(!files.some(p=>p.startsWith('src/controllers-$id/')));
+ const route=await readFile('src/routes-$id/route.js','utf8');
+ for(const method of ['get','post','put','delete'])assert.ok(route.includes('router.'+method+'('));
+ for(const core of ['src/app.js','src/test-service.js','src/routes-$id/route.js','src/services-$id/service.js','src/repositories-$id/repository.js','src/mappers-$id/entity-dto-mapper.js','src/middlewares-$id/pagination-middleware.js'])await access(core);
 });

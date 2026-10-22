@@ -17,7 +17,7 @@
 
 ## วิธีทำทีละขั้น
 
-1. controllerแปลงreq.params.idด้วยnumericId
+1. handler ใน route.jsแปลงreq.params.idด้วยnumericId
 2. servicegetProductตรวจexistingก่อน
 3. repositoryDELETE WHERE id=?และคืนaffectedRows
 4. ถ้าแถวหายก่อนลบให้throw404; FKerrorปล่อยไปmiddlewareกลาง
@@ -28,29 +28,26 @@
 โค้ดนี้ใช้จริงในtemplate โดยservice/repository/mapperที่ต้องใช้ร่วมกันอยู่ครบตามลิงก์ถัดไป ไม่ใช่handlerเดี่ยวที่รันได้โดยไม่มีlayerอื่น
 
 ```js
-// ADAPT: controller ที่ใช้ได้แล้ว เปลี่ยนparams/body/statusตามโจทย์ และแก้service/repo/mapperที่เกี่ยวข้อง
-// Delete: find404 or DELETE; 204 has NO JSON body
-import {numericId} from '../services-$id/catalog-service.js';
-
-export function deleteProductHandler(service) {
-  return async function (req, res) {
-    await service.removeProduct(numericId(req.params.id));
-    return res.status(204).end();
-  };
-}
+// อยู่ใน src/routes-$id/route.js
+// apiResponse(res, data, pagination = null, status = 200)
+// D1: 204 ไม่มี response body
+ router.delete('/products/:id', async(req,res) => {
+  await implementation.removeObject(numericId(req.params.id));
+  return res.status(204).end();
+ });
 ```
 
 ## เช็กว่าคำตอบถูกอย่างไร
 
-ลบเฉพาะidที่ตนสร้าง ตรวจstatus204และrawbodyว่าง จากนั้นGETidเดิมและDELETEซ้ำต้อง404 ถ้าโจทย์จริงกำหนด200พร้อมJSONให้เปลี่ยนcontrollerตามสเปกนั้น
+ลบเฉพาะidที่ตนสร้าง ตรวจstatus204และrawbodyว่าง จากนั้นGETidเดิมและDELETEซ้ำต้อง404 ถ้าโจทย์จริงกำหนด200พร้อมJSONให้เปลี่ยนhandler ใน route.jsตามสเปกนั้น
 
 ## ไฟล์ที่ใช้ร่วมกัน
 
-- [handler ข้อนี้](../../src/controllers-$id/06-delete-product.js): ส่วน req/res ที่ route ใช้จริง
-- [route](../../src/routes-$id/catalog-route.js): จุด mount handler และ middleware
-- [service](../../src/services-$id/catalog-service.js): ฟังก์ชัน `removeProduct` และ validation
-- [repository](../../src/repositories-$id/catalog-repository.js): ฟังก์ชัน `findProduct / removeProduct` และ SQL
-- [mapper](../../src/mappers-$id/product-mapper.js): ไม่ส่ง DTO เมื่อ204
+- [handler ข้อนี้](../../src/routes-$id/route.js): ส่วน req/res ที่ route.js ใช้จริง
+- [route](../../src/routes-$id/route.js): จุดรับ req/res และลงทะเบียน middleware
+- [service](../../src/services-$id/service.js): ฟังก์ชัน `removeObject` และ validation
+- [repository](../../src/repositories-$id/repository.js): ฟังก์ชัน `findOne / remove` และ SQL
+- [mapper](../../src/mappers-$id/entity-dto-mapper.js): ไม่ส่ง DTO เมื่อ204
 - [error handler](../../src/middlewares-$id/error-handler.js): แปลง error เป็น status/code/message
 
 ไฟล์ handler ไม่ใช่คำตอบทั้งหมดเพียงไฟล์เดียว ต้องอ่าน service/repository/mapper ที่ลิงก์ไว้ด้วย ทุกไฟล์เป็น .js ปกติ แยกชั้นเหมือน teacher template ไม่มีตัวสร้างโค้ดหรือ framework เพิ่ม

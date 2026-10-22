@@ -9,9 +9,9 @@ test('local desk serves docs/source and downloads without exposing arbitrary fil
   const home=await fetch(base);assert.equal(home.status,200);assert.match(home.headers.get('content-security-policy'),/connect-src 'self'/);
   assert.match(await home.text(),/Postman/);
   const files=await (await fetch(base+'/api/library')).json();
-  assert.ok(files.some(f=>f.path==='POSTMAN.md'));assert.ok(files.some(f=>f.path==='src/services-$id/catalog-service.js'));
+  assert.ok(files.some(f=>f.path==='POSTMAN.md'));assert.ok(files.some(f=>f.path==='src/services-$id/service.js'));
   assert.ok(!files.some(f=>f.path==='.env'||f.path.includes('node_modules')));
-  for(const path of ['/.env','/src/server.js','/download?file=.env','/download?file=..%2Fpackage.json'])assert.equal((await fetch(base+path)).status,404);
+  for(const path of ['/.env','/src/app.js','/download?file=.env','/download?file=..%2Fpackage.json'])assert.equal((await fetch(base+path)).status,404);
   const download=await fetch(base+'/download?file=requests%2Fpostman.json');assert.equal(download.status,200);assert.match(download.headers.get('content-disposition'),/attachment/);assert.ok((await download.json()).item.length>0);
   assert.equal((await fetch(base+'/api/library',{method:'POST'})).status,405);
  }finally{await new Promise(r=>server.close(r));}
@@ -29,8 +29,8 @@ test('organized navigation covers actual library files and home shortcuts resolv
  for(const file of files){assert.ok(known.has(context.sectionFor(file.path)));assert.ok(context.titleFor(file.path));}
  const html=await readFile('local-study/index.html','utf8');for(const match of html.matchAll(/data-open="([^"]+)"/g))assert.ok(files.some(f=>f.path===match[1]),match[1]);
  assert.equal((html.match(/class="task-card"/g)||[]).length,6);
- assert.equal(context.sectionFor('POSTMAN.md'),'postman');assert.equal(context.sectionFor('src/services-$id/catalog-service.js'),'source');
- assert.match(context.sourceLayer('src/services-$id/catalog-service.js'),/Service/);
+ assert.equal(context.sectionFor('POSTMAN.md'),'postman');assert.equal(context.sectionFor('src/services-$id/service.js'),'source');
+ assert.match(context.sourceLayer('src/services-$id/service.js'),/Service/);
  assert.equal(context.titleFor('guides/operations/01-create-product.md'),'C1 · เพิ่มข้อมูลสินค้า');
 });
 test('language-aware colors preserve shell URLs, JSON properties and original source text',async()=>{
@@ -41,12 +41,12 @@ test('language-aware colors preserve shell URLs, JSON properties and original so
  assert.match(context.highlight('{"name":"Demo","age":20}','json'),/tok-property/);
  const md=context.markdown('```sh\nnpm start\n```','START-HERE.th.md');assert.match(md,/code-language">SH/);assert.match(md,/tok-keyword/);
 });
-test('all diagram nodes link to bundled files and controller follows selected operation',async()=>{
+test('all diagram nodes link to bundled files and HTTP handling stays in teacher route.js',async()=>{
  const {getLibrary}=await import('../local-study/server.mjs');const files=await getLibrary();const js=await readFile('local-study/app.js','utf8');const context={URL};new Script(js.slice(0,js.indexOf("document.addEventListener('click'"))).runInNewContext(context);
  for(const kind of ['overview','setup','pagination','dto','error','postman']){
   const html=context.diagramMarkup(kind,'guides/operations/01-create-product.md');
   for(const link of html.matchAll(/href="#file=([^"]+)"/g))assert.ok(files.some(f=>f.path===decodeURIComponent(link[1])));
  }
- const create=context.diagramMarkup('overview','guides/operations/01-create-product.md');assert.ok(create.includes(encodeURIComponent('src/controllers-$id/01-create-product.js')));
+ const create=context.diagramMarkup('overview','guides/operations/01-create-product.md');assert.ok(create.includes(encodeURIComponent('src/routes-$id/route.js')));
  assert.match(context.diagramMarkup('dto','GUIDE.md'),/Mapper/);assert.equal(context.diagramFor('START-HERE.th.md'),'setup');
 });

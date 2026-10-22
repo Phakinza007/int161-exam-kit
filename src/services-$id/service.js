@@ -1,7 +1,8 @@
 // ADAPT: แก้productInputให้ตรงbody/required/defaultsของโจทย์; ไม่ส่งreq.bodyตรงลงSQL
 // ต่อไปแก้unique rule/not-found/ชื่อerror และเลือกsummary/detailให้ตรงแต่ละendpoint
 import {AppError} from '../middlewares-$id/app-error.js';
-import {summary,detail} from '../mappers-$id/product-mapper.js';
+import mapper from '../mappers-$id/entity-dto-mapper.js';
+import * as repository from '../repositories-$id/repository.js';
 const fail=message=>{throw new AppError(message);};
 function text(value,name,max) {
   if(typeof value!=='string'||!value.trim()||value.trim().length>max)fail(`${name} must be non-empty text (max ${max})`);
@@ -36,46 +37,47 @@ export function productInput(body) {
 }
 function tagCode(value){const code=text(value,'code',32);if(!/^[A-Za-z0-9_-]+$/.test(code))fail('tag code accepts letters, digits, underscore and hyphen');return code;}
 const required=(value,message,code)=>{if(!value)throw new AppError(message,404,code);return value;};
-export function createCatalogService(repo) {
-  const getProduct=async id=>required(await repo.findProduct(id),'Product not found','PRODUCT_NOT_FOUND');
+export function createService(repo) {
+  const getObject=async id=>required(await repo.findOne(id),'Product not found','PRODUCT_NOT_FOUND');
   const getBrand=async id=>required(await repo.findBrand(id),'Brand not found','BRAND_NOT_FOUND');
   const getTag=async code=>required(await repo.findTag(code),'Tag not found','TAG_NOT_FOUND');
   return {
     listBrands:()=>repo.listBrands(),
     getBrand,
     async removeBrand(id){await getBrand(id);if(!await repo.removeBrand(id))throw new AppError('Brand not found',404,'BRAND_NOT_FOUND');},
-    async listProducts(pagination) {
+    async getAllObjects(pagination) {
+      if (!pagination) return mapper.maps(await repo.findAll(), 'summary');
       // ADAPT READ: เพิ่มfilterต้องส่งไปทั้งlistและcountด้วย
       const [items, total] = await Promise.all([
-        repo.listProducts(pagination), repo.countProducts()
+        repo.findAll(pagination), repo.countAll()
       ]);
-      return {items: items.map(summary), total};
+      return {items: mapper.maps(items, 'summary'), total};
     },
-    async getProduct(id){return detail(await getProduct(id));},
+    async getObject(id){return mapper.map(await getObject(id));},
     // CREATE: ใช้insertIdเฉพาะauto increment; string PKอ่านกลับด้วยkeyที่รับมา
-    async createProduct(body) {
+    async createObject(body) {
       const data = productInput(body);
       if (await repo.findBySku(data.sku)) {
         throw new AppError('SKU already exists', 409, 'DUPLICATE_KEY');
       }
-      const id = await repo.createProduct(data);
-      return detail(await getProduct(id));
+      const id = await repo.create(data);
+      return mapper.map(await getObject(id));
     },
     // UPDATE: ตรวจว่ามีแถวก่อน; ค่าเดิมยังสำเร็จ อย่าใช้changedRows0เป็น404
-    async updateProduct(id, body) {
-      await getProduct(id);
+    async updateObject(id, body) {
+      await getObject(id);
       const data = productInput(body);
       const other = await repo.findBySku(data.sku);
       if (other && other.id !== id) {
         throw new AppError('SKU already exists', 409, 'DUPLICATE_KEY');
       }
-      await repo.updateProduct(id, data);
-      return detail(await getProduct(id));
+      await repo.update(id, data);
+      return mapper.map(await getObject(id));
     },
     // DELETE: repoคืนaffectedRows; FKerrorให้middlewareกลางแปลง
-    async removeProduct(id) {
-      await getProduct(id);
-      if (!await repo.removeProduct(id)) {
+    async removeObject(id) {
+      await getObject(id);
+      if (!await repo.remove(id)) {
         throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
       }
     },
@@ -84,8 +86,26 @@ export function createCatalogService(repo) {
     async createTag(body){const data={code:tagCode(body?.code),label:text(body?.label,'label',100)};await repo.createTag(data);return getTag(data.code);},
     async updateTag(code,body){code=tagCode(code);await getTag(code);await repo.updateTag(code,text(body?.label,'label',100));return getTag(code);},
     async removeTag(code){code=tagCode(code);await getTag(code);if(!await repo.removeTag(code))throw new AppError('Tag not found',404,'TAG_NOT_FOUND');},
-    async listProductTags(id){await getProduct(id);return repo.listProductTags(id);},
-    async createProductTag(id,body){await getProduct(id);const code=tagCode(body?.tagCode);await repo.createProductTag(id,code);return {productId:id,tagCode:code};},
-    async removeProductTag(id,code){await getProduct(id);code=tagCode(code);if(!await repo.removeProductTag(id,code))throw new AppError('Product/tag pair not found',404,'PRODUCT_TAG_NOT_FOUND');},
+    async listProductTags(id){await getObject(id);return repo.listProductTags(id);},
+    async createProductTag(id,body){await getObject(id);const code=tagCode(body?.tagCode);await repo.createProductTag(id,code);return {productId:id,tagCode:code};},
+    async removeProductTag(id,code){await getObject(id);code=tagCode(code);if(!await repo.removeProductTag(id,code))throw new AppError('Product/tag pair not found',404,'PRODUCT_TAG_NOT_FOUND');},
   };
 }
+
+const service = createService(repository);
+export const getObject = (...args) => service.getObject(...args);
+export const getAllObjects = (...args) => service.getAllObjects(...args);
+export const createObject = (...args) => service.createObject(...args);
+export const updateObject = (...args) => service.updateObject(...args);
+export const removeObject = (...args) => service.removeObject(...args);
+export const listBrands = (...args) => service.listBrands(...args);
+export const getBrand = (...args) => service.getBrand(...args);
+export const removeBrand = (...args) => service.removeBrand(...args);
+export const listTags = (...args) => service.listTags(...args);
+export const getTag = (...args) => service.getTag(...args);
+export const createTag = (...args) => service.createTag(...args);
+export const updateTag = (...args) => service.updateTag(...args);
+export const removeTag = (...args) => service.removeTag(...args);
+export const listProductTags = (...args) => service.listProductTags(...args);
+export const createProductTag = (...args) => service.createProductTag(...args);
+export const removeProductTag = (...args) => service.removeProductTag(...args);

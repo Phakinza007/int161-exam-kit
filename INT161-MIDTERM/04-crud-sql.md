@@ -1,6 +1,6 @@
 # 04 — CRUD และ SQL
 
-ดูเฉลยทั้งระบบใน [repository](../src/repositories-$id/catalog-repository.js) และ [service](../src/services-$id/catalog-service.js)
+ดูเฉลยทั้งระบบใน [repository](../src/repositories-$id/repository.js) และ [service](../src/services-$id/service.js)
 
 ## 1 Create
 

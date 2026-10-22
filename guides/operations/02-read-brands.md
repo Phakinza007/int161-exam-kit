@@ -27,15 +27,10 @@
 โค้ดนี้ใช้จริงในtemplate โดยservice/repository/mapperที่ต้องใช้ร่วมกันอยู่ครบตามลิงก์ถัดไป ไม่ใช่handlerเดี่ยวที่รันได้โดยไม่มีlayerอื่น
 
 ```js
-// ADAPT: controller ที่ใช้ได้แล้ว เปลี่ยนparams/body/statusตามโจทย์ และแก้service/repo/mapperที่เกี่ยวข้อง
-// Read 1: SELECT brands ORDER BY id → 200 array
-import {success} from '../mappers-$id/api-response.js';
-
-export function readBrandsHandler(service) {
-  return async function (req, res) {
-    return success(res, await service.listBrands());
-  };
-}
+// อยู่ใน src/routes-$id/route.js
+// apiResponse(res, data, pagination = null, status = 200)
+// R1: รายการแบรนด์
+ router.get('/brands', async(req,res) => apiResponse(res,await implementation.listBrands()));
 ```
 
 ## เช็กว่าคำตอบถูกอย่างไร
@@ -44,11 +39,11 @@ export function readBrandsHandler(service) {
 
 ## ไฟล์ที่ใช้ร่วมกัน
 
-- [handler ข้อนี้](../../src/controllers-$id/02-read-brands.js): ส่วน req/res ที่ route ใช้จริง
-- [route](../../src/routes-$id/catalog-route.js): จุด mount handler และ middleware
-- [service](../../src/services-$id/catalog-service.js): ฟังก์ชัน `listBrands` และ validation
-- [repository](../../src/repositories-$id/catalog-repository.js): ฟังก์ชัน `listBrands` และ SQL
-- [mapper](../../src/mappers-$id/product-mapper.js): ไม่ใช้ product mapper คืนฟิลด์ brands ตามใบงาน
+- [handler ข้อนี้](../../src/routes-$id/route.js): ส่วน req/res ที่ route.js ใช้จริง
+- [route](../../src/routes-$id/route.js): จุดรับ req/res และลงทะเบียน middleware
+- [service](../../src/services-$id/service.js): ฟังก์ชัน `listBrands` และ validation
+- [repository](../../src/repositories-$id/repository.js): ฟังก์ชัน `listBrands` และ SQL
+- [mapper](../../src/mappers-$id/entity-dto-mapper.js): ไม่ใช้ product mapper คืนฟิลด์ brands ตามใบงาน
 - [error handler](../../src/middlewares-$id/error-handler.js): แปลง error เป็น status/code/message
 
 ไฟล์ handler ไม่ใช่คำตอบทั้งหมดเพียงไฟล์เดียว ต้องอ่าน service/repository/mapper ที่ลิงก์ไว้ด้วย ทุกไฟล์เป็น .js ปกติ แยกชั้นเหมือน teacher template ไม่มีตัวสร้างโค้ดหรือ framework เพิ่ม

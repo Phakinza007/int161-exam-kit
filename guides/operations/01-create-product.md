@@ -18,26 +18,24 @@
 
 ## วิธีทำทีละขั้น
 
-1. อ่านbodyที่controller แล้วส่งให้service.createProduct
+1. อ่านbodyที่handler ใน route.js แล้วส่งให้service.createObject
 2. productInputตรวจ8ฟิลด์บังคับ ชนิดnumber/stringและNOT NULL ให้ตรงschema
 3. findBySkuตรวจซ้ำ แล้วcreateProductในrepository INSERT objectที่ผ่านallowlistแล้ว
 4. ใช้insertIdอ่านfindProductพร้อมJOIN แปลงdetailDTO
-5. controllerตอบ201; duplicateหรือFKerrorส่งเข้าmiddlewareกลาง
+5. handler ใน route.jsตอบ201; duplicateหรือFKerrorส่งเข้าmiddlewareกลาง
 
 ## เฉลย JavaScript: จุดรับ request และตอบ response
 
 โค้ดนี้ใช้จริงในtemplate โดยservice/repository/mapperที่ต้องใช้ร่วมกันอยู่ครบตามลิงก์ถัดไป ไม่ใช่handlerเดี่ยวที่รันได้โดยไม่มีlayerอื่น
 
 ```js
-// ADAPT: controller ที่ใช้ได้แล้ว เปลี่ยนparams/body/statusตามโจทย์ และแก้service/repo/mapperที่เกี่ยวข้อง
-// Create: validate/allowlist → INSERT → SELECT detail DTO → 201
-import {success} from '../mappers-$id/api-response.js';
-
-export function createProductHandler(service) {
-  return async function (req, res) {
-    return success(res, await service.createProduct(req.body), 201);
-  };
-}
+// อยู่ใน src/routes-$id/route.js
+// apiResponse(res, data, pagination = null, status = 200)
+// C1: รับ body แล้วคืน DTO พร้อม 201
+ router.post('/products', async(req,res) => {
+  const object = await implementation.createObject(req.body);
+  return apiResponse(res,object,null,201);
+ });
 ```
 
 ## เช็กว่าคำตอบถูกอย่างไร
@@ -46,11 +44,11 @@ export function createProductHandler(service) {
 
 ## ไฟล์ที่ใช้ร่วมกัน
 
-- [handler ข้อนี้](../../src/controllers-$id/01-create-product.js): ส่วน req/res ที่ route ใช้จริง
-- [route](../../src/routes-$id/catalog-route.js): จุด mount handler และ middleware
-- [service](../../src/services-$id/catalog-service.js): ฟังก์ชัน `createProduct` และ validation
-- [repository](../../src/repositories-$id/catalog-repository.js): ฟังก์ชัน `createProduct / findBySku / findProduct` และ SQL
-- [mapper](../../src/mappers-$id/product-mapper.js): detail
+- [handler ข้อนี้](../../src/routes-$id/route.js): ส่วน req/res ที่ route.js ใช้จริง
+- [route](../../src/routes-$id/route.js): จุดรับ req/res และลงทะเบียน middleware
+- [service](../../src/services-$id/service.js): ฟังก์ชัน `createObject` และ validation
+- [repository](../../src/repositories-$id/repository.js): ฟังก์ชัน `create / findBySku / findOne` และ SQL
+- [mapper](../../src/mappers-$id/entity-dto-mapper.js): detail
 - [error handler](../../src/middlewares-$id/error-handler.js): แปลง error เป็น status/code/message
 
 ไฟล์ handler ไม่ใช่คำตอบทั้งหมดเพียงไฟล์เดียว ต้องอ่าน service/repository/mapper ที่ลิงก์ไว้ด้วย ทุกไฟล์เป็น .js ปกติ แยกชั้นเหมือน teacher template ไม่มีตัวสร้างโค้ดหรือ framework เพิ่ม

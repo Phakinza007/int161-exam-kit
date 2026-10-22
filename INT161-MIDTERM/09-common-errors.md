@@ -7,7 +7,7 @@
 | Cannot use import outside a module | package.jsonมีtype:module |
 | require is not defined | ใช้import/exportให้ตรงESM |
 | ERR_MODULE_NOT_FOUND | relativepath/.js/ชื่อfolderและตัวพิมพ์ตรงไฟล์จริง |
-| เปิดnode app.jsแล้วserverไม่ขึ้น | appเป็นfactory ต้องเปิดserver.jsผ่านnpm start |
+| เปิด API ไม่ขึ้น | ใช้ npm start ที่เรียก src/app.js ตรวจ .env/MySQL และ error ใน Terminal |
 | EADDRINUSE | serverเดิมใช้portอยู่ ปิดตัวเดิมหรือเปลี่ยนPORT |
 | ECONNREFUSED | MySQLเปิดอยู่และhost/portถูก |
 | ER_ACCESS_DENIED_ERROR | user/passwordใน.envถูก |

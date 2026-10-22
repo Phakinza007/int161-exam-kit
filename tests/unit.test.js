@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePagination } from '../src/middlewares-$id/pagination.js';
-import { summary, detail } from '../src/mappers-$id/product-mapper.js';
+import { parsePagination } from '../src/middlewares-$id/pagination-middleware.js';
+import mapper from '../src/mappers-$id/entity-dto-mapper.js';
+const summary = entity => mapper.toSummaryDTO(entity), detail = entity => mapper.toDetailDTO(entity);
 import { normalizeError } from '../src/middlewares-$id/error-handler.js';
 import { loadSettings } from '../src/configs-$id/settings.js';
 
@@ -45,4 +46,13 @@ test('exam identity rejects missing, blank and sample profile values',()=>{
  for(const [field,value] of [['STUDENT_ID','demo001'],['STUDENT_ID','your_actual_id'],['STUDENT_NAME','Demo Student'],['STUDENT_NAME','Your Name'],['STUDENT_KEY','fictional-key'],['STUDENT_KEY','key_from_spec']])assert.throws(()=>loadSettings({...valid,[field]:value}),field);
  const cfg=loadSettings(valid);assert.equal(cfg.name,valid.STUDENT_NAME);assert.equal(cfg.key,valid.STUDENT_KEY);
  assert.equal(loadSettings({}).name,'Demo Student','practice defaults remain usable');
+});
+test('teacher module interfaces preserve map/maps, queryParser factory and zero-total responses',async()=>{
+ const service=await import('../src/services-$id/service.js');const repo=await import('../src/repositories-$id/repository.js');
+ for(const name of ['getObject','getAllObjects','createObject','updateObject','removeObject'])assert.equal(typeof service[name],'function');
+ for(const name of ['findOne','findAll','create','update','remove'])assert.equal(typeof repo[name],'function');
+ const {queryParser}=await import('../src/middlewares-$id/pagination-middleware.js');assert.equal(typeof queryParser(),'function');
+ const {apiResponse}=await import('../src/mappers-$id/api-response.js');const res={status(code){this.code=code;return this;},json(data){this.body=data;return this;}};
+ apiResponse(res,{items:[],totalItems:0},{page:1,limit:10});assert.deepEqual(res.body.data,[]);assert.equal(res.body.pagination.total,0);assert.equal(res.body.pagination.totalPages,0);
+ assert.deepEqual(mapper.maps([],'summary'),[]);
 });

@@ -14,6 +14,8 @@ export function parsePagination(query = {}) {
   if (!Number.isSafeInteger(offset)) throw new AppError('Requested page is too large');
   return {page, limit, offset};
 }
-export function queryParser(req, res, next) {
+export function queryParser() {
+ return function(req, res, next) {
   try { req.pagination = parsePagination(req.query); next(); } catch (err) { next(err); }
+ };
 }
