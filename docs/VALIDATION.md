@@ -1,8 +1,8 @@
 # ผลตรวจ Template
 
-รุ่น 3.1.0 ตรวจบน macOS, Node 26.5.1 และ MySQL 9.7.1 ในเครื่อง
+รุ่น 3.2.0 ตรวจบน macOS, Node 26.5.1 และ MySQL 9.7.1 ในเครื่อง
 
-- npm test: 32/32 ผ่าน รวม CRUD persistence, DTO/types/JOIN/date, pagination, error contracts, unchanged update, string/composite key และ request samples กับ MySQL จริง
+- npm test: 33/33 ผ่าน รวม CRUD persistence, DTO/types/JOIN/date, pagination, error contracts, unchanged update, string/composite key และ request samples กับ MySQL จริง
 - เทียบ midterm-exam-esm-template.zip ที่ได้รับ: มี src ครบทั้ง 9 path เดิม ไม่มี controllers-$id หรือ server.js; app.js เป็น entrypoint, route.js รับ req/res เอง
 - ตรวจสำเนา ZIP อาจารย์จริงด้วย verify:template: API contracts 9/9 และ npm start เรียก app.js ได้ HTTP 200 ทั้ง student-info/products โดยไม่แก้ ZIP ต้นฉบับ
 - Regression: app.js ที่พังเฉพาะ runtime ถูกตรวจพบ แม้ import factory ผ่าน
@@ -14,3 +14,5 @@
 - Postman collection ตรวจโครงสร้างและมี curl smoke test กับ API/MySQL จริง ไม่ได้เปิด Postman GUI ทดสอบ
 
 schema และ response ของข้อสอบจริงต้องปรับตามสเปก ผลตรวจนี้ใช้ฐานตัวอย่าง ไม่รับรองทุก schema/Windows/MySQL ทุกรุ่น ต้องเตรียม dependencies ไว้ก่อนตัดอินเทอร์เน็ต
+
+Overall Diagram ตรวจว่ามีmutationเฉพาะC/U/Dที่ขั้นMySQL, Readไม่เขียนDB, กรณี400/404/409หยุดก่อนmutation, DELETEไม่ผ่านMapperและตอบ204, not-foundไม่ส่งnullเข้าMapper แต่ละขั้นลิงก์ไปไฟล์จริง แผนภาพเป็นข้อมูลจำลองไม่ทดแทนการทดสอบAPI

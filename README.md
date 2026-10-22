@@ -39,6 +39,8 @@ npm run study   # คู่มือ http://127.0.0.1:8171
 npm start       # API http://127.0.0.1:3000/api/demo001
 ```
 
+หน้า localhost มี Overall Diagram (`#overall`) เลือก C1/R1/R2/R3/U1/D1 และกรณี400/404/409 แล้วไล่ขั้น ดูไฟล์/โค้ด/SQL/ข้อมูลเข้า-ออก พร้อมเน้นจุดINSERT/UPDATE/DELETEจริง แผนภาพเป็นข้อมูลจำลอง ไม่เรียกAPIหรือเปลี่ยนDB
+
 หน้า localhost แบ่ง 6 หมวด มีค้นหา สารบัญ สีโค้ดแยกภาษา และ Diagram กดเปิดไฟล์จริงได้ อ่าน [Postman](POSTMAN.md) สำหรับ Import collection และวิธีส่ง URL เต็มแบบ offline
 
 ## เลือกงานที่กำลังทำ

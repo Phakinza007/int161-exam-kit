@@ -60,3 +60,22 @@ test('six-step learning path has real chapters, readable checkpoints and safe lo
  const chapters=files.filter(f=>f.path==='START-HERE.th.md'||f.path.startsWith('guides/walkthrough/'));assert.equal(chapters.length,6);
  for(const chapter of chapters){assert.equal(context.sectionFor(chapter.path),'start');assert.match(chapter.content,/Self-check/);for(const label of ['ทำที่ไหน','ทำอะไร','ควรเห็น','ถ้าไม่ผ่าน'])assert.ok(chapter.content.includes(label),chapter.path+': '+label);}
 });
+test('overall CRUD traces mark database writes accurately and stop error branches before mutation',async()=>{
+ const source=await readFile('local-study/app.js','utf8');const scenarios=JSON.parse(source.match(/const overallScenarios = (.*);\n/)[1]);
+ const {getLibrary}=await import('../local-study/server.mjs');const files=new Set((await getLibrary()).map(f=>f.path));
+ for(const [key,scene] of Object.entries(scenarios)){
+  for(const step of scene.steps)assert.ok(files.has(step.file),key+': '+step.file);
+  for(const step of scene.steps.filter(s=>s.changes))assert.equal(step.stage,'db');
+  assert.ok(scene.steps.at(-1).status);
+ }
+ for(const [key,operation] of [['c1','INSERT'],['u1','UPDATE'],['d1','DELETE']]){
+  assert.equal(scenarios[key].write,operation);assert.equal(scenarios[key].steps.filter(s=>s.changes).length,1);
+ }
+ for(const key of ['r1','r2','r3','c1-invalid','c1-duplicate','r3-missing'])assert.ok(!scenarios[key].steps.some(s=>s.changes));
+ assert.ok(!scenarios.d1.steps.some(s=>s.stage==='mapper'));assert.equal(scenarios.d1.steps.at(-1).status,204);
+ assert.ok(!scenarios['r3-missing'].steps.some(s=>s.stage==='mapper'));assert.equal(scenarios['c1-invalid'].steps.at(-1).status,400);
+ assert.equal(scenarios['c1-duplicate'].steps.at(-1).status,409);assert.equal(scenarios['r3-missing'].steps.at(-1).status,404);
+ assert.ok(!JSON.parse(scenarios['c1-invalid'].steps[0].input).ram_gb);
+ const context={URL};new Script(source.slice(0,source.indexOf("document.addEventListener('click'"))).runInNewContext(context);
+ assert.equal(context.overallState('c1',999).step.status,201);assert.equal(context.overallState('c1',-3).index,0);
+});
